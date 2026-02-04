@@ -1,5 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 const emptyConfig = {
   aspects_categories: [],
@@ -22,6 +35,7 @@ function App() {
   const [showLabelModal, setShowLabelModal] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showClassifyModal, setShowClassifyModal] = useState(false);
+  const [statsData, setStatsData] = useState(null);
   const [selectedBankingDomain, setSelectedBankingDomain] = useState(null);
   const [selectedScope, setSelectedScope] = useState(null);
 
@@ -31,7 +45,7 @@ function App() {
   const currentItem = dataset[currentIndex] || {};
   const articleMeta = currentItem.article_meta || {};
   const paragraphIndex =
-    currentItem.paragraph_index ?? currentItem.sentence_idx ?? 0;
+    currentItem.paragraph_index ?? currentItem.sentence_idx ?? 1;
   const articleComplete = currentItem.article_id
     ? isArticleAnnotationComplete(currentItem.article_id)
     : false;
@@ -79,6 +93,20 @@ function App() {
     setTextDraft(currentItem.text || "");
     maybeOpenClassificationModal(currentItem.article_id);
   }, [currentIndex, dataset]);
+
+  useEffect(() => {
+    if (!showStatsModal) return;
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/stats");
+        const data = await res.json();
+        setStatsData(data);
+      } catch (error) {
+        console.error("Failed to fetch stats", error);
+      }
+    };
+    fetchStats();
+  }, [showStatsModal]);
 
   const handleTextSelection = () => {
     if (isEditingText) return;
@@ -457,7 +485,7 @@ function App() {
               <div className="text-md text-slate-400">
                 ID:{" "}
                 {currentItem.article_id
-                  ? `${currentItem.article_id}_${paragraphIndex + 1}`
+                  ? `${currentItem.article_id}_${paragraphIndex}`
                   : "N/A"}
               </div>
               <button
@@ -710,20 +738,134 @@ function App() {
 
       {showStatsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-            <div className="mb-4 text-lg font-semibold text-slate-700">
+          <div className="w-full max-w-4xl max-h-screen overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-6 text-2xl font-semibold text-slate-700">
               Dataset Statistics
             </div>
-            <div className="text-sm text-slate-600">
-              Total paragraphs: {total}
+
+            {/* Summary Cards */}
+            <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="rounded-lg bg-indigo-50 p-4">
+                <div className="text-3xl font-bold text-indigo-600">
+                  {total}
+                </div>
+                <div className="text-sm text-slate-600">Total Paragraphs</div>
+              </div>
+              <div className="rounded-lg bg-emerald-50 p-4">
+                <div className="text-3xl font-bold text-emerald-600">
+                  {annotatedCount}
+                </div>
+                <div className="text-sm text-slate-600">Annotated</div>
+              </div>
+              <div className="rounded-lg bg-amber-50 p-4">
+                <div className="text-3xl font-bold text-amber-600">
+                  {skippedCount}
+                </div>
+                <div className="text-sm text-slate-600">Skipped/No Aspect</div>
+              </div>
             </div>
-            <div className="text-sm text-slate-600">
-              Annotated: {annotatedCount}
-            </div>
-            <div className="text-sm text-slate-600">
-              Skipped: {skippedCount}
-            </div>
-            <div className="mt-4 flex justify-end">
+
+            {/* Charts */}
+            {statsData && (
+              <div className="space-y-8">
+                {/* Aspect Distribution */}
+                {statsData.aspect_counts &&
+                  Object.keys(statsData.aspect_counts).length > 0 && (
+                    <div className="rounded-lg border border-slate-200 p-4">
+                      <div className="mb-4 text-lg font-semibold text-slate-700">
+                        Aspect Distribution
+                      </div>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart
+                          data={Object.entries(statsData.aspect_counts).map(
+                            ([k, v]) => ({ name: k, count: v }),
+                          )}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis
+                            dataKey="name"
+                            angle={-45}
+                            textAnchor="end"
+                            height={80}
+                            interval={0}
+                          />
+                          <YAxis />
+                          <Tooltip />
+                          <Bar dataKey="count" fill="#6366f1" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+
+                {/* Sentiment Distribution */}
+                {statsData.sentiment_counts &&
+                  Object.keys(statsData.sentiment_counts).length > 0 && (
+                    <div className="rounded-lg border border-slate-200 p-4">
+                      <div className="mb-4 text-lg font-semibold text-slate-700">
+                        Sentiment Distribution
+                      </div>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                          <Pie
+                            data={Object.entries(
+                              statsData.sentiment_counts,
+                            ).map(([k, v]) => ({ name: k, value: v }))}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ name, value }) => `${name}: ${value}`}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            <Cell fill="#10b981" />
+                            <Cell fill="#ef4444" />
+                            <Cell fill="#f59e0b" />
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+
+                {/* Aspect-Sentiment Breakdown */}
+                {statsData.breakdown &&
+                  Object.keys(statsData.breakdown).length > 0 && (
+                    <div className="rounded-lg border border-slate-200 p-4">
+                      <div className="mb-4 text-lg font-semibold text-slate-700">
+                        Aspect-Sentiment Breakdown
+                      </div>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart
+                          data={Object.entries(statsData.breakdown).map(
+                            ([aspect, sentiments]) => ({
+                              aspect,
+                              ...sentiments,
+                            }),
+                          )}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis
+                            dataKey="aspect"
+                            angle={-45}
+                            textAnchor="end"
+                            height={80}
+                            interval={0}
+                          />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="POSITIVE" stackId="a" fill="#10b981" />
+                          <Bar dataKey="NEGATIVE" stackId="a" fill="#ef4444" />
+                          <Bar dataKey="NEUTRAL" stackId="a" fill="#f59e0b" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+              </div>
+            )}
+
+            <div className="mt-8 flex justify-end">
               <button
                 className="rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
                 onClick={() => setShowStatsModal(false)}

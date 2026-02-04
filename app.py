@@ -107,8 +107,8 @@ BANKING_DOMAIN_LABELS = ["BANKING", "NON_BANKING"]
 SCOPE_LABELS = ["MICRO", "MACRO"]
 
 # Use merged dataset from ViFABSA project
-INPUT_DATA = 'data/raw.json'
-OUTPUT_DATA = "data/annotated.json"
+INPUT_DATA = '/home/nguyen-quang-huy/NCKHSV/2025/ViFABSA/data/raw/splits/split_0001.json'
+OUTPUT_DATA = '/home/nguyen-quang-huy/NCKHSV/2025/ViFABSA/data/annotated/splits/split_0001.json'
 
 # Create reverse mapping: aspect -> category (same as aspect for flat list)
 ASPECT_TO_CATEGORY = {aspect: aspect for aspect in ASPECTS}
@@ -185,10 +185,10 @@ def load_data():
             for idx, sent in enumerate(content_list):
                 if isinstance(sent, dict):
                     text = sent.get('text', '')
-                    paragraph_index = sent.get('paragraph_index', idx)
+                    paragraph_index = sent.get('paragraph_index', idx + 1)
                 else:
                     text = sent
-                    paragraph_index = idx
+                    paragraph_index = idx + 1
                 
                 data.append({
                     'id': item_counter,
@@ -210,12 +210,12 @@ def load_data():
                     text = sent.get('text', '')
                     labels = sent.get('labels', [])
                     skipped = sent.get('no_aspect', sent.get('skipped', False))
-                    paragraph_index = sent.get('paragraph_index', idx)
+                    paragraph_index = sent.get('paragraph_index', idx + 1)
                 else:
                     text = sent
                     labels = []
                     skipped = False
-                    paragraph_index = idx
+                    paragraph_index = idx + 1
                 
                 data.append({
                     'id': item_counter,
@@ -317,7 +317,7 @@ def save_data(data):
 
             art_dict[art_id].setdefault('article_id', art_id)
             art_dict[art_id]['content'].append({
-                'paragraph_index': item.get('paragraph_index', len(art_dict[art_id]['content'])),
+                'paragraph_index': item.get('paragraph_index', len(art_dict[art_id]['content']) + 1),
                 'text': item['text'],
                 'labels': _normalize_labels(item.get('labels', [])),
                 'no_aspect': item.get('skipped', False)
