@@ -2,6 +2,8 @@
 
 <div align="center">
   
+  <img src="https://github.com/CSSERT/labelit/blob/main/public/LOGO.png" alt="Labelit Logo" width="300" />
+
   [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE) [![Python](https://img.shields.io/badge/python-3.12+-blue.svg?style=flat-square)](https://www.python.org/) [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg?style=flat-square)](https://fastapi.tiangolo.com/) [![React](https://img.shields.io/badge/React-19-61dafb.svg?style=flat-square)](https://react.dev/)
   
   [![GitHub Stars](https://img.shields.io/github/stars/CSSERT/labelit?style=flat-square)](https://github.com/CSSERT/labelit) [![GitHub Forks](https://img.shields.io/github/forks/CSSERT/labelit?style=flat-square)](https://github.com/CSSERT/labelit) [![GitHub Issues](https://img.shields.io/github/issues/CSSERT/labelit?style=flat-square)](https://github.com/CSSERT/labelit/issues)
