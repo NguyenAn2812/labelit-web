@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from collections import Counter, defaultdict
+from collections import defaultdict
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 
@@ -37,13 +37,9 @@ class ArticleMeta(BaseModel):
     publisher: Optional[str] = None
     author: Optional[str] = None
     sapo: Optional[str] = None
-    category: Optional[str] = None
-    web_type: Optional[str] = None
     publish_time: Optional[str] = None
-    url: Optional[str] = None
     scope: Optional[str] = None
-    banking_domain: Optional[str] = None
-    target_symbol: Optional[str] = None
+    ticker: Optional[list] = None
 
 class DataItem(BaseModel):
     id: int
@@ -61,12 +57,6 @@ class UpdateItemRequest(BaseModel):
     skipped: bool = False
     article_meta: Optional[Dict[str, Any]] = None
 
-class UpdateBankingDomainRequest(BaseModel):
-    article_id: Any
-    banking_domain: str
-    clear_labels: bool = False
-    set_skipped: Optional[bool] = None
-
 class UpdateScopeRequest(BaseModel):
     article_id: Any
     scope: str
@@ -75,7 +65,6 @@ class ConfigResponse(BaseModel):
     aspects_categories: List[str]
     aspects: List[str]
     sentiments: List[str]
-    banking_domains: List[str]
     scopes: List[str]
 
 class StatsResponse(BaseModel):
@@ -102,16 +91,27 @@ ASPECTS_CATEGORIES = ASPECTS
 
 SENTIMENTS = ["POSITIVE", "NEGATIVE", "NEUTRAL"]
 
-# ViFABSA pipeline labels (Stage 2 & 3)
-BANKING_DOMAIN_LABELS = ["BANKING", "NON_BANKING"]
+# ViFABSA pipeline labels (Stage 3)
 SCOPE_LABELS = ["MICRO", "MACRO"]
 
 # Use merged dataset from ViFABSA project
-INPUT_DATA = '/home/nguyen-quang-huy/NCKHSV/2025/ViFABSA/data/raw/splits/split_0001.json'
-OUTPUT_DATA = '/home/nguyen-quang-huy/NCKHSV/2025/ViFABSA/data/annotated/splits/split_0001.json'
+INPUT_DATA = 'data/raw.json'
+OUTPUT_DATA = 'data/annotated.json'
 
 # Create reverse mapping: aspect -> category (same as aspect for flat list)
 ASPECT_TO_CATEGORY = {aspect: aspect for aspect in ASPECTS}
+
+SENTIMENT_SHORT_TO_LONG = {
+    "POS": "POSITIVE",
+    "NEG": "NEGATIVE",
+    "NEU": "NEUTRAL",
+}
+
+SENTIMENT_LONG_TO_SHORT = {
+    "POSITIVE": "POS",
+    "NEGATIVE": "NEG",
+    "NEUTRAL": "NEU",
+}
 
 def get_category_for_aspect(aspect):
     """Get category name for a given aspect"""
@@ -140,14 +140,99 @@ def _build_article_meta(article):
         'publisher': article.get('publisher'),
         'author': article.get('author'),
         'sapo': article.get('sapo'),
-        'category': article.get('category'),
-        'web_type': article.get('web_type'),
         'publish_time': article.get('publish_time'),
-        'url': article.get('url'),
         'scope': article.get('scope'),
-        'banking_domain': article.get('banking_domain'),
-        'target_symbol': article.get('target_symbol')
+        'ticker': article.get('ticker')
     }
+
+
+def _get_paragraphs(article):
+    """Get paragraph list from raw/annotated schema, with legacy fallback."""
+    paragraphs = article.get('paragraphs')
+    if isinstance(paragraphs, list):
+        return paragraphs
+    content = article.get('content')
+    if isinstance(content, list):
+        return content
+    return []
+
+
+def _to_ui_sentiment(value):
+    if not isinstance(value, str):
+        return value
+    return SENTIMENT_SHORT_TO_LONG.get(value.upper(), value)
+
+
+def _to_storage_sentiment(value):
+    if not isinstance(value, str):
+        return value
+    return SENTIMENT_LONG_TO_SHORT.get(value.upper(), value)
+
+
+def _annotation_to_ui_label(annotation):
+    if not isinstance(annotation, dict):
+        return None
+
+    start = annotation.get('start')
+    end = annotation.get('end')
+    aspect = annotation.get('aspect')
+    sentiment = _to_ui_sentiment(annotation.get('sentiment'))
+
+    if start is None or end is None or not aspect or not sentiment:
+        return None
+
+    try:
+        start = int(start)
+        end = int(end)
+    except (TypeError, ValueError):
+        return None
+
+    return {
+        'start': start,
+        'end': end,
+        'aspect': aspect,
+        'sentiment': sentiment,
+    }
+
+
+def _ui_label_to_annotation(label, text=''):
+    if isinstance(label, Label):
+        label = label.model_dump()
+    if not isinstance(label, dict):
+        return None
+
+    start = label.get('start')
+    end = label.get('end')
+    aspect = label.get('aspect')
+    sentiment = _to_storage_sentiment(label.get('sentiment'))
+
+    if start is None or end is None or not aspect or not sentiment:
+        return None
+
+    try:
+        start = int(start)
+        end = int(end)
+    except (TypeError, ValueError):
+        return None
+
+    span = text[start:end] if isinstance(text, str) and 0 <= start <= end <= len(text) else ''
+
+    return {
+        'span': span,
+        'start': start,
+        'end': end,
+        'aspect': aspect,
+        'sentiment': sentiment,
+    }
+
+
+def _has_real_annotations(annotations):
+    for ann in annotations or []:
+        if not isinstance(ann, dict):
+            continue
+        if ann.get('aspect') and ann.get('sentiment'):
+            return True
+    return False
 
 def load_data():
     data = []
@@ -176,57 +261,41 @@ def load_data():
     articles_metadata = _extract_articles(source_data)
     
     item_counter = 0
-    if source_type == 'input':
-        for art in articles_metadata:
-            art_id = _get_article_id(art)
-            content_list = art.get('content', [])
-            
-            # Handle case where content is a list of strings or list of dicts
-            for idx, sent in enumerate(content_list):
-                if isinstance(sent, dict):
-                    text = sent.get('text', '')
-                    paragraph_index = sent.get('paragraph_index', idx + 1)
-                else:
-                    text = sent
-                    paragraph_index = idx + 1
-                
-                data.append({
-                    'id': item_counter,
-                    'article_id': art_id,
-                    'article_meta': _build_article_meta(art),
-                    'paragraph_index': paragraph_index,
-                    'text': text,
-                    'labels': [],
-                    'skipped': False
-                })
-                item_counter += 1
-    else:
-        for art in articles_metadata:
-            art_id = _get_article_id(art)
-            content_list = art.get('content', [])
-            
-            for idx, sent in enumerate(content_list):
-                if isinstance(sent, dict):
-                    text = sent.get('text', '')
-                    labels = sent.get('labels', [])
-                    skipped = sent.get('no_aspect', sent.get('skipped', False))
-                    paragraph_index = sent.get('paragraph_index', idx + 1)
-                else:
-                    text = sent
-                    labels = []
-                    skipped = False
-                    paragraph_index = idx + 1
-                
-                data.append({
-                    'id': item_counter,
-                    'article_id': art_id,
-                    'article_meta': _build_article_meta(art),
-                    'paragraph_index': paragraph_index,
-                    'text': text,
-                    'labels': labels,
-                    'skipped': skipped
-                })
-                item_counter += 1
+    for art in articles_metadata:
+        art_id = _get_article_id(art)
+        paragraphs = _get_paragraphs(art)
+
+        for idx, para in enumerate(paragraphs):
+            if isinstance(para, dict):
+                text = para.get('text', '')
+                annotations = para.get('annotations')
+                if not isinstance(annotations, list):
+                    # Legacy fallback (kept for backward compatibility)
+                    annotations = para.get('labels', [])
+                paragraph_index = idx + 1
+                skipped = bool(para.get('no_aspect', para.get('skipped', False)))
+            else:
+                text = para
+                annotations = []
+                paragraph_index = idx + 1
+                skipped = False
+
+            labels = []
+            for ann in annotations:
+                converted = _annotation_to_ui_label(ann)
+                if converted:
+                    labels.append(converted)
+
+            data.append({
+                'id': item_counter,
+                'article_id': art_id,
+                'article_meta': _build_article_meta(art),
+                'paragraph_index': paragraph_index,
+                'text': text,
+                'labels': labels,
+                'skipped': skipped
+            })
+            item_counter += 1
     return data
 
 def _normalize_labels(labels):
@@ -236,36 +305,43 @@ def _normalize_labels(labels):
             normalized.append(lbl.model_dump())
         elif isinstance(lbl, dict):
             normalized.append(lbl)
-        else:
-            normalized.append(lbl)
     return normalized
 
 
-def _reorder_article_fields(article):
-    preferred_order = [
-        'article_id',
-        'banking_domain',
-        'scope',
-        'publisher',
-        'title',
-        'author',
-        'publish_time',
-        'source',
-        'sapo',
-        'category',
-        'web_type',
-        'url',
-        'target_symbol',
-        'content'
-    ]
-    ordered = {}
-    for key in preferred_order:
-        if key in article:
-            ordered[key] = article[key]
-    for key, value in article.items():
-        if key not in ordered:
-            ordered[key] = value
-    return ordered
+def _index_items_by_article_and_paragraph(data):
+    indexed = defaultdict(dict)
+    for item in data:
+        article_id = str(item.get('article_id'))
+        paragraph_index = int(item.get('paragraph_index', 1))
+        indexed[article_id][paragraph_index] = item
+    return indexed
+
+
+def _merge_article_meta_into_article(article, item):
+    item_meta = item.get('article_meta') or {}
+    for key in [
+        'title', 'source', 'publisher', 'author', 'sapo',
+        'publish_time', 'url',
+        'scope', 'ticker'
+    ]:
+        if key in item_meta:
+            article[key] = item_meta[key]
+
+
+def _build_new_paragraph_item(article_id, paragraph_index, item):
+    text = item.get('text', '')
+    labels = _normalize_labels(item.get('labels', []))
+    annotations = []
+    for lbl in labels:
+        ann = _ui_label_to_annotation(lbl, text)
+        if ann:
+            annotations.append(ann)
+
+    return {
+        'id': f"{article_id}_{paragraph_index}",
+        'text': text,
+        'annotations': annotations,
+    }
 
 
 def save_data(data):
@@ -287,68 +363,110 @@ def save_data(data):
         else:
             base_data = {'articles': [], 'metadata': {}}
     
-    articles_metadata = _extract_articles(base_data)
-    
-    # Group data by article_id
-    art_dict = {}
-    for item in data:
-        art_id = item['article_id']
-        if art_id not in art_dict:
-            # Find the metadata
-            for meta in articles_metadata:
-                if str(_get_article_id(meta)) == str(art_id):
-                    art_dict[art_id] = meta.copy()
-                    art_dict[art_id]['content'] = []
-                    break
-            if art_id not in art_dict:
-                art_dict[art_id] = {
-                    'article_id': art_id,
-                    'content': []
-                }
-        if art_id in art_dict:
-            item_meta = item.get('article_meta') or {}
-            for key in [
-                'title', 'source', 'publisher', 'author', 'sapo',
-                'category', 'web_type', 'publish_time', 'url',
-                'scope', 'banking_domain', 'target_symbol'
-            ]:
-                if key in item_meta and item_meta[key] is not None:
-                    art_dict[art_id][key] = item_meta[key]
+    item_index = _index_items_by_article_and_paragraph(data)
 
-            art_dict[art_id].setdefault('article_id', art_id)
-            art_dict[art_id]['content'].append({
-                'paragraph_index': item.get('paragraph_index', len(art_dict[art_id]['content']) + 1),
-                'text': item['text'],
-                'labels': _normalize_labels(item.get('labels', [])),
-                'no_aspect': item.get('skipped', False)
-            })
-    
-    if isinstance(base_data, dict) and 'articles' in base_data:
+    if isinstance(base_data, dict) and isinstance(base_data.get('articles'), list):
         new_data = base_data.copy()
-        new_data['articles'] = [
-            _reorder_article_fields(article) for article in art_dict.values()
-        ]
-        metadata = new_data.get('metadata') or {}
-        metadata['last_annotated_at'] = datetime.now().isoformat()
-        new_data['metadata'] = metadata
-    elif isinstance(base_data, list):
-        new_data = [
-            _reorder_article_fields(article) for article in art_dict.values()
-        ]
-    elif isinstance(base_data, dict) and ('article_id' in base_data or 'id' in base_data):
-        new_data = (
-            _reorder_article_fields(list(art_dict.values())[0])
-            if art_dict else base_data
-        )
+        new_articles = []
+
+        for article in base_data.get('articles', []):
+            article_copy = article.copy()
+            article_id = str(_get_article_id(article_copy))
+            items_for_article = item_index.get(article_id, {})
+
+            paragraphs = _get_paragraphs(article_copy)
+            updated_paragraphs = []
+
+            for idx, para in enumerate(paragraphs):
+                paragraph_index = idx + 1
+                item = items_for_article.get(paragraph_index)
+
+                if isinstance(para, dict):
+                    para_copy = para.copy()
+                    existing_text = para_copy.get('text', '')
+                else:
+                    para_copy = {
+                        'id': f"{article_id}_{paragraph_index}",
+                        'text': para,
+                        'annotations': []
+                    }
+                    existing_text = para
+
+                if item:
+                    _merge_article_meta_into_article(article_copy, item)
+                    text = item.get('text', existing_text)
+                    labels = _normalize_labels(item.get('labels', []))
+
+                    annotations = []
+                    for lbl in labels:
+                        ann = _ui_label_to_annotation(lbl, text)
+                        if ann:
+                            annotations.append(ann)
+
+                    para_copy['text'] = text
+                    para_copy['annotations'] = annotations
+                else:
+                    if not isinstance(para_copy.get('annotations'), list):
+                        para_copy['annotations'] = []
+
+                if not para_copy.get('id'):
+                    para_copy['id'] = f"{article_id}_{paragraph_index}"
+
+                updated_paragraphs.append(para_copy)
+
+            # Add newly created paragraphs if they exist in API data but not in base file.
+            if items_for_article:
+                max_existing_index = len(updated_paragraphs)
+                extra_indexes = sorted(i for i in items_for_article.keys() if i > max_existing_index)
+                for paragraph_index in extra_indexes:
+                    item = items_for_article[paragraph_index]
+                    _merge_article_meta_into_article(article_copy, item)
+                    updated_paragraphs.append(
+                        _build_new_paragraph_item(article_id, paragraph_index, item)
+                    )
+
+            article_copy['paragraphs'] = updated_paragraphs
+            if 'content' in article_copy:
+                del article_copy['content']
+            new_articles.append(article_copy)
+
+        existing_article_ids = {str(_get_article_id(a)) for a in new_articles}
+        extra_article_ids = [aid for aid in item_index.keys() if aid not in existing_article_ids]
+
+        for article_id in extra_article_ids:
+            items_for_article = item_index[article_id]
+            if not items_for_article:
+                continue
+            first_item = items_for_article[sorted(items_for_article.keys())[0]]
+            new_article = {'id': article_id, 'paragraphs': []}
+            _merge_article_meta_into_article(new_article, first_item)
+            for paragraph_index in sorted(items_for_article.keys()):
+                new_article['paragraphs'].append(
+                    _build_new_paragraph_item(article_id, paragraph_index, items_for_article[paragraph_index])
+                )
+            new_articles.append(new_article)
+
+        new_data['articles'] = new_articles
     else:
-        new_data = {
-            'articles': [
-                _reorder_article_fields(article) for article in art_dict.values()
-            ],
-            'metadata': {
-                'last_annotated_at': datetime.now().isoformat()
-            }
-        }
+        # Fallback structure if the base file has an unexpected schema.
+        new_articles = []
+        for article_id, by_index in item_index.items():
+            if not by_index:
+                continue
+            first_item = by_index[sorted(by_index.keys())[0]]
+            article = {'id': article_id, 'paragraphs': []}
+            _merge_article_meta_into_article(article, first_item)
+            for paragraph_index in sorted(by_index.keys()):
+                article['paragraphs'].append(
+                    _build_new_paragraph_item(article_id, paragraph_index, by_index[paragraph_index])
+                )
+            new_articles.append(article)
+        new_data = {'articles': new_articles}
+
+    # Keep lightweight save metadata only if metadata section already exists.
+    if isinstance(new_data, dict) and isinstance(new_data.get('metadata'), dict):
+        metadata = new_data['metadata']
+        metadata['last_annotated_at'] = datetime.now().isoformat()
     
     with open(OUTPUT_DATA, 'w', encoding='utf-8') as f:
         json.dump(new_data, f, ensure_ascii=False, indent=2)
@@ -358,12 +476,11 @@ def save_data(data):
 
 @app.get("/api/config", response_model=ConfigResponse)
 async def get_config():
-    """Get configuration: aspects, sentiments, banking domains, scopes"""
+    """Get configuration: aspects, sentiments, scopes"""
     return ConfigResponse(
         aspects_categories=ASPECTS_CATEGORIES,
         aspects=ASPECTS,
         sentiments=SENTIMENTS,
-        banking_domains=BANKING_DOMAIN_LABELS,
         scopes=SCOPE_LABELS
     )
 
@@ -404,33 +521,6 @@ async def update_item(request: UpdateItemRequest):
         raise HTTPException(status_code=404, detail="ID not found")
 
 
-@app.post("/api/update-banking-domain")
-async def update_banking_domain(request: UpdateBankingDomainRequest):
-    """Update article banking domain classification"""
-    if request.banking_domain not in BANKING_DOMAIN_LABELS:
-        raise HTTPException(status_code=400, detail="Invalid banking_domain")
-
-    all_data = load_data()
-    updated = False
-
-    for item in all_data:
-        if str(item.get('article_id')) == str(request.article_id):
-            item['article_meta'] = {**(item.get('article_meta') or {}), **{"banking_domain": request.banking_domain}}
-            if request.banking_domain == 'NON_BANKING':
-                item['article_meta']['scope'] = None
-            if request.clear_labels:
-                item['labels'] = []
-            if request.set_skipped is not None:
-                item['skipped'] = bool(request.set_skipped)
-            updated = True
-
-    if updated:
-        save_data(all_data)
-        return {"status": "success"}
-    else:
-        raise HTTPException(status_code=404, detail="article_id not found")
-
-
 @app.post("/api/update-scope")
 async def update_scope(request: UpdateScopeRequest):
     """Update article scope classification (MICRO/MACRO)"""
@@ -442,9 +532,6 @@ async def update_scope(request: UpdateScopeRequest):
 
     for item in all_data:
         if str(item.get('article_id')) == str(request.article_id):
-            current_domain = (item.get('article_meta') or {}).get('banking_domain')
-            if current_domain != 'BANKING':
-                raise HTTPException(status_code=400, detail="Set banking_domain to BANKING first")
             item['article_meta'] = {**(item.get('article_meta') or {}), **{"scope": request.scope}}
             updated = True
 
@@ -466,11 +553,9 @@ async def get_annotated_count():
         data = json.load(f)
     
     for article in _extract_articles(data):
-        if article.get('banking_domain') == 'NON_BANKING':
-            continue
-        for sent in article.get('content', []):
-            labels = sent.get('labels', [])
-            if labels and any((isinstance(l, dict) and l.get('aspect') and l.get('sentiment')) or (isinstance(l, list) and len(l) >= 3 and l[2] != 'SKIPPED') for l in labels):
+        for para in _get_paragraphs(article):
+            annotations = para.get('annotations', []) if isinstance(para, dict) else []
+            if _has_real_annotations(annotations):
                 count += 1
     
     return {"count": count}
@@ -479,18 +564,8 @@ async def get_annotated_count():
 @app.get("/api/skipped-count")
 async def get_skipped_count():
     """Get count of skipped items"""
-    if not os.path.exists(OUTPUT_DATA):
-        return {"count": 0}
-    
-    count = 0
-    with open(OUTPUT_DATA, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-    
-    for article in _extract_articles(data):
-        for sent in article.get('content', []):
-            if sent.get('no_aspect', sent.get('skipped', False)):
-                count += 1
-    
+    data = load_data()
+    count = sum(1 for item in data if item.get('skipped'))
     return {"count": count}
 
 
@@ -519,8 +594,6 @@ async def get_stats():
     annotated_count = 0
 
     for item in data:
-        if (item.get('article_meta') or {}).get('banking_domain') == 'NON_BANKING':
-            continue
         labels = item.get('labels', [])
         if labels:
             has_real_label = False
@@ -528,7 +601,7 @@ async def get_stats():
                 # Handle new object format
                 if isinstance(lbl, dict):
                     aspect = lbl.get('aspect', '')
-                    sentiment = lbl.get('sentiment', '')
+                    sentiment = _to_ui_sentiment(lbl.get('sentiment', ''))
                     if aspect and sentiment:
                         has_real_label = True
                         aspect_counts[aspect] += 1
@@ -541,6 +614,7 @@ async def get_stats():
                     if '#' in tag and tag != 'SKIPPED':
                         has_real_label = True
                         aspect, sentiment = tag.split('#')
+                        sentiment = _to_ui_sentiment(sentiment)
                         aspect_counts[aspect] += 1
                         sentiment_counts[sentiment] += 1
                         category = get_category_for_aspect(aspect)

@@ -18,7 +18,6 @@ const emptyConfig = {
   aspects_categories: [],
   aspects: [],
   sentiments: [],
-  banking_domains: [],
   scopes: [],
 };
 
@@ -36,7 +35,6 @@ function App() {
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showClassifyModal, setShowClassifyModal] = useState(false);
   const [statsData, setStatsData] = useState(null);
-  const [selectedBankingDomain, setSelectedBankingDomain] = useState(null);
   const [selectedScope, setSelectedScope] = useState(null);
 
   const textRef = useRef(null);
@@ -50,7 +48,7 @@ function App() {
     ? isArticleAnnotationComplete(currentItem.article_id)
     : false;
 
-  const total = dataset.length;
+  const total_paragraph = dataset.length;
   const annotatedCount = useMemo(
     () =>
       dataset.filter((item) => (item.labels?.length || 0) > 0 && !item.skipped)
@@ -61,10 +59,29 @@ function App() {
     () => dataset.filter((item) => item.skipped).length,
     [dataset],
   );
-  const remainingCount = total - annotatedCount - skippedCount;
+  const spanCount = useMemo(
+    () =>
+      dataset.reduce(
+        (sum, item) => sum + (item.labels ? item.labels.length : 0),
+        0,
+      ),
+    [dataset],
+  );
+  const totalArticleCount = useMemo(
+    () =>
+      new Set(
+        dataset
+          .map((item) => item.article_id)
+          .filter((articleId) => articleId !== undefined && articleId !== null),
+      ).size,
+    [dataset],
+  );
+  const remainingCount = total_paragraph - annotatedCount - skippedCount;
 
   const progress =
-    total > 0 ? ((annotatedCount + skippedCount) / total) * 100 : 0;
+    total_paragraph > 0
+      ? ((annotatedCount + skippedCount) / total_paragraph) * 100
+      : 0;
 
   useEffect(() => {
     const load = async () => {
@@ -220,6 +237,7 @@ function App() {
     const next = currentIndex + step;
     if (next < 0 || next >= dataset.length) return;
     setCurrentIndex(next);
+    console.log(articleMeta);
   };
 
   const goToPage = (value) => {
@@ -272,11 +290,7 @@ function App() {
     });
   }
 
-  const isClassificationComplete = (meta) => {
-    if (!meta?.banking_domain) return false;
-    if (meta.banking_domain === "NON_BANKING") return true;
-    return Boolean(meta.scope);
-  };
+  const isClassificationComplete = (meta) => Boolean(meta?.scope);
 
   const maybeOpenClassificationModal = (articleId) => {
     if (!articleId) return;
@@ -284,13 +298,11 @@ function App() {
     if (isClassificationComplete(articleMeta)) return;
     if (dismissedClassificationRef.current.has(String(articleId))) return;
     setShowClassifyModal(true);
-    setSelectedBankingDomain(articleMeta.banking_domain || null);
     setSelectedScope(articleMeta.scope || null);
   };
 
   const openClassificationModal = () => {
     setShowClassifyModal(true);
-    setSelectedBankingDomain(articleMeta.banking_domain || null);
     setSelectedScope(articleMeta.scope || null);
   };
 
@@ -303,30 +315,16 @@ function App() {
 
   const confirmClassification = async () => {
     if (!currentItem?.article_id) return;
-    if (!selectedBankingDomain) return;
-    if (selectedBankingDomain === "BANKING" && !selectedScope) return;
+    if (!selectedScope) return;
 
-    await fetch("/api/update-banking-domain", {
+    await fetch("/api/update-scope", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         article_id: currentItem.article_id,
-        banking_domain: selectedBankingDomain,
-        clear_labels: selectedBankingDomain === "NON_BANKING",
-        set_skipped: selectedBankingDomain === "NON_BANKING" ? true : null,
+        scope: selectedScope,
       }),
     });
-
-    if (selectedBankingDomain === "BANKING") {
-      await fetch("/api/update-scope", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          article_id: currentItem.article_id,
-          scope: selectedScope,
-        }),
-      });
-    }
 
     const dataRes = await fetch("/api/data");
     const data = await dataRes.json();
@@ -403,11 +401,8 @@ function App() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <div className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">
-              Annotated {annotatedCount}/{total}
-            </div>
             <button
-              className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold"
+              className="rounded-full bg-white/20 px-3 py-1 font-semibold hover:opacity-50 cursor-pointer"
               onClick={() => setShowStatsModal(true)}
             >
               Statistics
@@ -416,25 +411,66 @@ function App() {
         </header>
 
         <div className="space-y-6 p-6">
-          <section className="space-y-4 rounded-xl bg-slate-50 p-4 text-sm font-semibold text-slate-600">
-            <div className="grid gap-4 md:grid-cols-4">
+          <section className="space-y-4 rounded-xl bg-slate-50// p-4 text-sm font-semibold text-slate-600">
+            <div className="grid gap-0 md:grid-cols-6">
               <div className="text-center">
-                <div className="text-2xl text-indigo-600">{total}</div>
-                <div>Total Paragraphs</div>
+                <span className="text-2xl text-indigo-600">
+                  {totalArticleCount}
+                </span>
+                <div>Articles</div>
+              </div>
+              <div className="text-center">
+                <span className="text-2xl text-indigo-600">
+                  {total_paragraph}
+                </span>
+                <div>Paragraphs</div>
+              </div>
+              <div className="text-center">
+                <span className="text-2xl text-emerald-600">{spanCount}</span>
+                <div>
+                  Annotated
+                  <br />
+                  Span
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-2xl text-emerald-600">
-                  {annotatedCount}
+                  {annotatedCount}({" "}
+                  {((annotatedCount / total_paragraph) * 100).toFixed(2)}%)
                 </div>
-                <div>Annotated</div>
+
+                <div>
+                  Annotated
+                  <br />
+                  Paragraphs
+                </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl text-amber-600">{skippedCount}</div>
-                <div>No Aspect</div>
+                <div className="text-2xl text-amber-600">
+                  {skippedCount} (
+                  {((skippedCount / total_paragraph) * 100).toFixed(2)}%)
+                </div>
+
+                <div>
+                  No Aspect <br />
+                  Paragraphs
+                </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl text-rose-600">{remainingCount}</div>
-                <div>Remaining</div>
+                <div className="text-2xl text-rose-600">
+                  {remainingCount} ({" "}
+                  {100 -
+                    (
+                      ((annotatedCount + skippedCount) / total_paragraph) *
+                      100
+                    ).toFixed(2)}
+                  %)
+                </div>
+
+                <div>
+                  Remaining <br />
+                  paragraphs
+                </div>
               </div>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
@@ -450,7 +486,7 @@ function App() {
               {articleMeta.title || "No title"}
             </div>
             <div className="mt-2 flex flex-wrap gap-2 text-xs font-medium">
-              <span className="rounded-full bg-white/20 px-3 py-1">
+              <span className="rounded-full bg-white/20 px-3 py-1 hover:opacity-50 cursor-pointer">
                 <a href={articleMeta.source} target="_blank">
                   {"URL" || "N/A"}
                 </a>
@@ -459,28 +495,33 @@ function App() {
                 {articleMeta.publisher || "N/A"}
               </span>
               <span className="rounded-full bg-white/20 px-3 py-1">
-                {timestampToDatetime(articleMeta.publish_time) || "N/A"}
-              </span>
-              <span className="rounded-full bg-white/20 px-3 py-1">
-                Domain: {articleMeta.banking_domain || "N/A"}
+                {articleMeta.publish_time || "N/A"}
               </span>
               <span className="rounded-full bg-white/20 px-3 py-1">
                 Scope: {articleMeta.scope || "N/A"}
               </span>
+              {articleMeta.scope === "MICRO" && (
+                <span className="rounded-full bg-white/20 px-3 py-1">
+                  Ticker:{" "}
+                  {articleMeta.ticker && articleMeta.ticker.length > 0
+                    ? articleMeta.ticker.join(" ")
+                    : "N/A"}
+                </span>
+              )}
             </div>
           </section>
 
           <section className="flex flex-wrap items-center justify-between gap-4 rounded-xl py-3 text-sm font-semibold text-slate-600">
             <div className="flex items-center gap-2">
               <button
-                className="rounded-lg bg-red-200 px-3 py-2 text-slate-700 shadow disabled:opacity-40"
+                className="rounded-lg bg-red-200 px-3 py-2 text-slate-700 shadow disabled:opacity-40 hover:opacity-50 cursor-pointer"
                 disabled={currentIndex <= 0}
                 onClick={() => navigate(-1)}
               >
                 ←
               </button>
               <div>
-                # {currentIndex + 1} / {total}
+                # {currentIndex + 1} / {total_paragraph}
               </div>
               <div className="text-md text-slate-400">
                 ID:{" "}
@@ -489,8 +530,8 @@ function App() {
                   : "N/A"}
               </div>
               <button
-                className="rounded-lg bg-red-200 px-3 py-2 text-slate-700 shadow disabled:opacity-40"
-                disabled={currentIndex >= total - 1}
+                className="rounded-lg bg-red-200 px-3 py-2 text-slate-700 shadow disabled:opacity-40 hover:opacity-50 cursor-pointer"
+                disabled={currentIndex >= total_paragraph - 1}
                 onClick={() => navigate(1)}
               >
                 →
@@ -502,7 +543,7 @@ function App() {
                 className="w-20 rounded-lg border border-slate-200 px-2 py-1"
                 type="number"
                 min={1}
-                max={total}
+                max={total_paragraph}
                 value={currentIndex + 1}
                 onChange={(e) => goToPage(e.target.value)}
               />
@@ -518,29 +559,29 @@ function App() {
 
           <section className="flex flex-wrap items-center gap-3">
             <button
-              className="rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+              className={`rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 cursor-pointer hover:opacity-50 `}
               onClick={toggleEditText}
             >
               {isEditingText ? "Done" : "Edit Text"}
             </button>
             <button
-              className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-white"
+              className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-white cursor-pointer hover:opacity-50 "
               onClick={markNoAspects}
             >
               No Aspects
             </button>
             <button
-              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white"
+              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white cursor-pointer hover:opacity-50 "
               onClick={() => saveCurrentItem()}
             >
               Save
             </button>
             <button
-              className={`rounded-lg px-4 py-2 text-sm font-semibold text-white ${articleComplete ? "bg-indigo-500" : "bg-indigo-300 cursor-not-allowed"}`}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold text-white cursor-pointer hover:opacity-50  ${articleComplete ? "bg-indigo-500" : "bg-indigo-300 cursor-not-allowed"}`}
               onClick={openClassificationModal}
               disabled={!articleComplete}
             >
-              Classify Article
+              Set Scope
             </button>
           </section>
 
@@ -600,7 +641,7 @@ function App() {
                     </span>
                   </div>
                   <button
-                    className="rounded-lg bg-rose-100 py-6 px-2 text-xs font-semibold text-rose-600"
+                    className="rounded-lg bg-rose-100 py-6 px-2 text-xs font-semibold text-rose-600 hover:opacity-50 cursor-pointer"
                     onClick={() => removeLabel(idx)}
                   >
                     Remove
@@ -683,31 +724,16 @@ function App() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
             <div className="mb-4 text-lg font-semibold text-slate-700">
-              Article Classification
+              Set Article Scope
             </div>
             <div className="mb-2 text-xs font-semibold uppercase text-slate-400">
-              Banking Domain
-            </div>
-            <div className="mb-4 flex flex-wrap gap-2">
-              {(config.banking_domains || []).map((label) => (
-                <button
-                  key={label}
-                  className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${selectedBankingDomain === label ? "bg-indigo-500 text-white shadow ring-2 ring-amber-400/70" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-200"}`}
-                  onClick={() => setSelectedBankingDomain(label)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div className="mb-2 text-xs font-semibold uppercase text-slate-400">
-              Scope (Banking only)
+              Scope
             </div>
             <div className="mb-6 flex flex-wrap gap-2">
               {(config.scopes || []).map((label) => (
                 <button
                   key={label}
-                  disabled={selectedBankingDomain !== "BANKING"}
-                  className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${selectedScope === label ? "bg-emerald-500 text-white shadow ring-2 ring-amber-400/70" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-200"} ${selectedBankingDomain !== "BANKING" ? "opacity-50" : ""}`}
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${selectedScope === label ? "bg-emerald-500 text-white shadow ring-2 ring-amber-400/70" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-200"}`}
                   onClick={() => setSelectedScope(label)}
                 >
                   {label}
@@ -722,14 +748,11 @@ function App() {
                 Close
               </button>
               <button
-                className={`rounded-lg px-4 py-2 text-sm font-semibold text-white ${selectedBankingDomain && (selectedBankingDomain !== "BANKING" || selectedScope) ? "bg-indigo-500" : "bg-indigo-300 cursor-not-allowed"}`}
+                className={`rounded-lg px-4 py-2 text-sm font-semibold text-white ${selectedScope ? "bg-indigo-500" : "bg-indigo-300 cursor-not-allowed"}`}
                 onClick={confirmClassification}
-                disabled={
-                  !selectedBankingDomain ||
-                  (selectedBankingDomain === "BANKING" && !selectedScope)
-                }
+                disabled={!selectedScope}
               >
-                Save Classification
+                Save Scope
               </button>
             </div>
           </div>
@@ -747,9 +770,11 @@ function App() {
             <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="rounded-lg bg-indigo-50 p-4">
                 <div className="text-3xl font-bold text-indigo-600">
-                  {total}
+                  {total_paragraph}
                 </div>
-                <div className="text-sm text-slate-600">Total Paragraphs</div>
+                <div className="text-sm text-slate-600">
+                  Total_paragraph Paragraphs
+                </div>
               </div>
               <div className="rounded-lg bg-emerald-50 p-4">
                 <div className="text-3xl font-bold text-emerald-600">

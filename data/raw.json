@@ -1,0 +1,266 @@
+{
+    "split_index": 1,
+    "num_splits": 379,
+    "total": 100,
+    "first_publish_time": "2025-10-28 10:00:00",
+    "last_publish_time": "2021-09-11 10:38:00",
+    "articles": [
+        {
+            "id": "1",
+            "publisher": "cafef",
+            "publish_time": "2025-10-28 10:00:00",
+            "title": "MSB: An toàn hệ thống là nền tảng của đổi mới và tăng trưởng",
+            "author": "Ánh Dương",
+            "source": "https://cafef.vn/msb-an-toan-he-thong-la-nen-tang-cua-doi-moi-va-tang-truong-188251027224059535.chn",
+            "ticker": [
+                "MSB"
+            ],
+            "scope": "MICRO",
+            "paragraphs": [
+                "Cải tiến nền tảng công nghệ: phòng thủ để xây dựng hệ sinh thái số an toàn",
+                "Năm 2024, MSB nâng cấp thành công hệ thống ngân hàng lõi (Core Banking) thế hệ mới. Đây không chỉ là bước tiến về công nghệ, mà còn thể hiện tầm nhìn dài hạn của MSB trong việc xây nền móng vững chắc cho hệ sinh thái số phát triển bền vững và an toàn. Trong bối cảnh ngành ngân hàng chuyển từ các hệ thống tập trung sang kiến trúc linh hoạt, phân tán và tích hợp API mở, MSB chủ động chuyển đổi hệ thống lõi để vận hành tương thích với sự gia tăng về quy mô, mở rộng khả năng kết nối và đổi mới.",
+                "Bên cạnh đó, để đảm bảo vận hành ổn định và sẵn sàng đối phó với các nguy cơ an ninh mạng, MSB duy trì một hệ thống giám sát và xử lý sự cố an toàn thông tin liên tục và toàn diện. Ngân hàng triển khai các giải pháp tiên tiến như SIEM (Quản trị sự kiện & thông tin bảo mật), EDR (Phòng chống xâm nhập tại điểm cuối) và DRPS (Dịch vụ bảo vệ rủi ro kỹ thuật số) để theo dõi, phân tích và phản ứng nhanh với mọi dấu hiệu bất thường. Đặc biệt, MSB tăng cường tích hợp nhật ký hệ thống từ máy chủ, thiết bị, cũng như các ứng dụng quan trọng thuộc nhóm 3&4 vào nền tảng SIEM, giúp tập trung dữ liệu bảo mật, nâng cao khả năng phát hiện sớm các sự kiện rủi ro. Hệ thống giám sát đa tầng này đã góp phần tạo nên \"tường lửa thông minh\" bảo vệ môi trường vận hành của MSB, từ đó đảm bảo sự an toàn, ổn định và tin cậy cho hoạt động ngân hàng số.",
+                "Bước tiến của MSB không chỉ nằm ở công nghệ, mà còn là sự chuyển biến trong văn hóa nội bộ. Theo đó, ngân hàng đã xây dựng danh mục rủi ro an ninh thông tin toàn diện, được theo dõi theo thời gian thực và cập nhật liên tục. Rủi ro không còn là báo cáo cuối kỳ, mà trở thành chỉ số quan trọng của quá trình \"ra quyết định trên dữ liệu\", từ phát triển sản phẩm, triển khai dịch vụ đến xây dựng các quy trình vận hành, rà soát tuân thủ và xử lý sự cố.",
+                "Việc triển khai các giải pháp như SIEM, EDR cùng với diễn tập định kỳ các kịch bản tấn công mạng giúp MSB duy trì trạng thái phòng thủ chủ động, linh hoạt và thích ứng cao. Mỗi thành viên trong tổ chức, từ nhân sự công nghệ đến giao dịch viên tại quầy đều được đào tạo để trở thành một \"mắt xích an toàn\" trong chuỗi vận hành số.",
+                "Song song với đó, MSB đã triển khai xác thực đa nhân tố (MFA) cho các hệ thống giao dịch tài chính trọng yếu như Core Banking và Jupiter, tăng cường lớp bảo vệ trước nguy cơ truy cập trái phép. Ngân hàng cũng thường xuyên kiểm thử hệ thống dự phòng và quy trình khôi phục dữ liệu, bảo đảm khả năng vận hành liên tục và an toàn cho các nền tảng cốt lõi.",
+                "Chủ động củng cố an toàn thông tin – năng lực cốt lõi xây dựng niềm tin",
+                "MSB xác định việc bảo vệ an toàn thông tin là nền tảng để ngân hàng duy trì sự gắn kết và tạo giá trị bền vững trong hành trình số hóa. Với tinh thần đó, MSB đã chủ động thực hiện các biện pháp bảo mật, liên tục thích ứng và phòng ngừa ở cấp hệ thống, cấp ứng dụng và từ cấp độ khách hàng.",
+                "Song song, MSB ứng dụng các công nghệ AI và Machine Learning vào việc phát hiện hành vi gian lận phức tạp, chống deepfake. Ngân hàng cũng tự động cảnh báo và chặn giao dịch bất thường hoặc tiềm ẩn rủi ro cao như giao dịch cờ bạc, chuyển tiền đa cấp... Không chỉ bảo vệ hệ thống, MSB còn thiết lập một lá chắn chủ động cho từng khách hàng, giúp họ được an toàn ngay cả khi chưa nhận ra nguy cơ.",
+                "Bên cạnh đó, MSB đã triển khai loạt thiết bị, công nghệ tiên tiến như xác thực đa nhân tố, đọc căn cước công dân gắn chip kết nối dữ liệu quốc gia, và kết nối sinh trắc học. Đây không chỉ là biện pháp an ninh, mà là cơ sở để xây dựng trải nghiệm khách hàng liền mạch, xác thực số đáng tin cậy, sẵn sàng cho một tương lai ngân hàng hoàn toàn phi vật lý.",
+                "Đặc biệt, việc MSB kết nối và chia sẻ dữ liệu an ninh với các cơ quan quản lý như Bộ Công an, Ngân hàng Nhà nước là bước đi thể hiện tinh thần liên kết dữ liệu quốc gia vì một không gian tài chính minh bạch. Đây là hướng đi giúp giảm thiểu thiệt hại cho toàn xã hội trước làn sóng tội phạm công nghệ cao ngày càng tinh vi thông qua việc cảnh báo hoặc chặn tự động các giao dịch nghi ngờ gian lận, giả mạo.",
+                "Đại diện MSB chia sẻ: \"An toàn thông tin là hành trình hai chiều: ngân hàng bảo vệ liên tục, và khách hàng không ngừng cảnh giác. Ngân hàng bảo vệ bạn bằng hệ thống, nhưng chính sự cẩn trọng của bạn mới là ‘mật mã’ an toàn nhất. Hãy luôn tỉnh táo, chủ động trong mọi giao dịch, theo dõi liên tục các cảnh báo của ngân hàng để bảo vệ dữ liệu cá nhân và tài sản\".",
+                "Những điều trên là cách MSB đang nâng cấp năng lực tổ chức để sẵn sàng đối mặt với những biến động của môi trường số, nơi an toàn không chỉ là một tiêu chuẩn tuân thủ, mà còn là lợi thế cạnh tranh."
+            ]
+        },
+        {
+            "id": "2",
+            "publisher": "cafef",
+            "publish_time": "2025-05-05 10:12:00",
+            "title": "Không phải 'ông lớn' nào trong nhóm Big 5, đây mới là ngân hàng hút tiền gửi nhiều nhất quý 1/2025",
+            "author": "Lan Anh",
+            "source": "https://cafef.vn/khong-phai-ong-lon-nao-trong-nhom-big-5-day-moi-la-ngan-hang-hut-tien-nhieu-nhat-quy-1-2025-188250505101223208.chn",
+            "ticker": [
+                "VPB",
+                "TPB",
+                "HDB",
+                "BID",
+                "ACB",
+                "SHB",
+                "KLB",
+                "TCB",
+                "CTG",
+                "VCB",
+                "SSB",
+                "STB",
+                "MBB",
+                "ABB"
+            ],
+            "scope": "MICRO",
+            "paragraphs": [
+                "Tính đến cuối quý 1/2025, tổng tiền gửi khách hàng tại 27 ngân hàng khảo sát đạt 11,407.434 tỷ đồng, tăng thêm hơn 272.000 tỷ đồng so với đầu năm, tương ứng mức tăng 2,4%. So với cùng kỳ năm 2024, con số này tăng mạnh 15,3%.",
+                "Dẫn đầu về quy mô tiền gửi tiếp tục là những cái tên quen thuộc. Top 10 ngân hàng có tiền gửi khách hàng cao nhất tính đến cuối tháng 3/2025 bao gồm:",
+                "BIDV tiếp tục giữ vị trí số 1 về quy mô tiền gửi với gần 2 triệu tỷ đồng, tăng thêm 23.776 tỷ chỉ trong 3 tháng đầu năm, tương ứng tăng 1,2%. Với vai trò là ngân hàng quốc doanh, có mạng lưới rộng khắp và uy tín lâu năm, BIDV vẫn là ngân hàng hút tiền gửi mạnh mẽ.",
+                "VietinBank (CTG) giữ vững vị trí thứ 2 với 1,62 triệu tỷ đồng, tăng 0,9% trong quý. Đáng chú ý, Vietcombank (VCB) lại ghi nhận mức giảm nhẹ 5.552 tỷ đồng tiền gửi trong quý 1, tương ứng -0,4%, nhưng vẫn giữ vị trí thứ 3.",
+                "MB (MBB) ghi nhận tiền gửi khách hàng đạt hơn 722.000 tỷ đồng, vững vàng ở vị trí thứ 4 toàn hệ thống, tăng 1,2% trong 3 tháng đầu năm.",
+                "Trong nhóm tư nhân, Sacombank (STB) duy trì vị trí thứ 5 với 585.569 tỷ đồng, tăng 3,3% trong quý đầu năm – tương ứng tăng gần 18.700 tỷ đồng.",
+                "Các vị trí tiếp theo lần lượt thuộc về VPBank, ACB, Techcombank, SHB và HDBank đều là những nhà băng có tệp khách hàng cá nhân lớn, trong đó nhiều ngân hàng sở hữu hệ sinh thái hàng chục triệu khách hàng.",
+                "Xét về mức tăng tuyệt đối (số dư tăng thêm so với cuối năm 2024), VPBank là ngân hàng hút tiền gửi nhất khi tăng thêm 66.707 tỷ đồng, từ 455.817 tỷ lên 552.374 tỷ. BIDV tăng thêm 23.776 tỷ đồng, nhờ đó tiếp tục củng cố vị trí số 1 toàn hệ thống về quy mô tiền gửi. Các ngân hàng khác có số dư tiền gửi khách hàng tăng thêm nhiều nhất lần lượt là SHB (+30.219 tỷ đồng), HDBank (+27.816 tỷ đồng),...Xét về tỷ lệ tăng trưởng (% so với cuối năm 2024), những ngân hàng tăng mạnh nhất là VPBank (13,7%), Kienlongbank (+11,8%), Nam A Bank (11,4%),...",
+                "Như vậy, VPBank là ngân hàng hút tiền gửi nhất trong quý đầu năm 2025. Nhờ đó, VPBank tăng 3 bậc thứ hạng, từ vị trí thứ 9 (quý 4/2024) lên thứ 6 (quý 1/2025). Theo VPBank, huy động vốn tăng trưởng mạnh mẽ nhờ đa dạng chính sách cũng như tung ra các sản phẩm mới để thu hút khách hàng. Đặc biệt, huy động vốn tăng nhưng chi phí vốn được kiểm soát, duy trì ngang so với quý liền trước.",
+                "Ở chiều ngược lại, có 5 ngân hàng ghi nhận mức giảm tiền gửi, trong đó, \"ông lớn\" Vietcombank giảm nhẹ 0,4%, tương đương hơn 5.500 tỷ đồng. Điều này có thể do ngân hàng cơ cấu nguồn vốn huy động, trong bối cảnh dư nợ cho vay khách hàng cũng chỉ tăng nhẹ 1,2% trong 3 tháng đầu năm. Bù lại sự sụt giảm tiền gửi khách hàng, tiền gửi của Kho bạc Nhà nước tại Vietcombank tăng mạnh 56% lên 121 nghìn tỷ đồng.",
+                "Một số ngân hàng khác cũng sụt giảm tiền gửi khách hàng như Techcombank (TCB) giảm 0,3%, tương đương gần 1.800 tỷ đồng. Trong khi đó, TPBank giảm 4%, SeABank giảm 4,9%, ABBank giảm 1,1%."
+            ]
+        },
+        {
+            "id": "3",
+            "publisher": "vietnambiz",
+            "publish_time": "2024-08-23 15:33:00",
+            "title": "TOP 10 ngân hàng rót nhiều tiền vào chứng khoán nhất nửa đầu năm 2024",
+            "author": "Minh Nguyệt",
+            "source": "https://vietnambiz.vn/top-10-ngan-hang-rot-nhieu-tien-vao-chung-khoan-nhat-nua-dau-nam-2024-202482382115139.htm",
+            "ticker": [
+                "VPB",
+                "HDB",
+                "EIB",
+                "BID",
+                "ACB",
+                "SAIGONBANK",
+                "Agribank",
+                "TCB",
+                "CTG",
+                "VCB",
+                "STB",
+                "VIB"
+            ],
+            "scope": "MICRO",
+            "paragraphs": [
+                "Theo thống kê từ báo cáo tài chính chưa kiểm toán của 30 ngân hàng, sau nửa đầu năm 2024, số dư khoản mục chứng khoán kinh doanh và đầu tư của các ngân hàng đã tăng 2% so với cuối năm trước,đạt hơn 1,9 triệu tỷ đồng.",
+                "Chứng khoán kinh doanh là chứng khoán nợ, chứng khoán vốn và các chứng khoán khác được mua và nắm giữ trong vòng một năm nhằm thu lợi nhuận do chêch lệch giá. Còn chứng khoán đầu tư gồm rất nhiều loại như trái phiếu, tín phiếu, giấy tờ có giá, cổ phiếu,... nhưng thông thường trái phiếu chính phủ chiếm tỷ trọng cao nhất.",
+                "Tính đến cuối tháng 6, BIDV là ngân hàng đứng đầu tiên trong hệ thống với 260.406 tỷ đồng rót vào chứng khoán kinh doanh và đầu tư, tăng 14% so với cuối năm 2023. Trong đó khoản mục chứng khoán đầu tư chiếm phần lớn với 252.220 tỷ đồng.",
+                "Theo sau đó là Agribank, ngân hàng có tỷ lệ tăng chứng khoán kinh doanh và đầu tư cao nhất trong Top 10, tương ứng tỷ lệ 22%, nâng chứng khoán ngân hàng từ 173.863 tỷ đồng vào cuối năm 2023 lên 211.675 tỷ đồng tính đến hết tháng 6/2024.",
+                "MB ghi nhận chứng khoản mục chứng khoán giảm nhẹ 7% trong nửa đầu năm 2024, đạt 179.485 tỷ đồng và giữ vị trí thứ ba trên bảng xếp hạng.",
+                "\"Ông lớn\" Vietcombank đang xếp thứ 4 với 169.264 tỷ đồng, trong đóchứng khoán là166.832 tỷ đồng (41.599 tỷ đồng vào trái phiếu Chính phủ sẵn sàng để bán) và chứng khoán kinh doanh là 2.432 tỷ đồng.",
+                "Những vị trí tiếp theo trong Top 10 lần lượt thuộc về VietinBank, Techcombank, Sacombank, ACB, VPBank và HDBank.",
+                "Về tốc độ tăng trưởng, có 10 nhà băng ghi nhận khoản mục đầu tư chứng khoán tăng từ hai con số trở lên, đặc biệt hai ngân hàng ghi nhận mức tăng trưởng ba chữ số bao gồm Eximbank (130%) và Saigonbank (121%).",
+                "Tuy nhiên, cũng có 14 ngân hàng báo giảm lượng chứng khoán kinh doanh và đầu tư trong 6 tháng đầu năm, VIB là ngân hàng có tỷ lệ giảm mạnh nhất với mức giảm 53%."
+            ]
+        },
+        {
+            "id": "4",
+            "publisher": "vietnambiz",
+            "publish_time": "2021-10-13 17:44:00",
+            "title": "Một ngân hàng báo lãi 9 tháng gấp 7 lần cùng kỳ năm trước",
+            "author": "Phương Nga",
+            "source": "https://vietnambiz.vn/mot-ngan-hang-bao-lai-9-thang-gap-7-lan-cung-ky-nam-truoc-20211013171638404.htm",
+            "ticker": [
+                "NCB",
+                "NVB"
+            ],
+            "scope": "MICRO",
+            "paragraphs": [
+                "Theo báo cáo tài chính hợp nhất quý III của Ngân hàng TMCP Quốc dân (NCB - Mã: NVB), lợi nhuận trước thuế luỹ kế 9 tháng đầu năm của ngân hàng đạt 205,6 tỷ đồng, cao gấp hơn 7 lần cùng kỳ.",
+                "Trong đó, thu nhập lãi thuần tăng 30,9% mang về 1.088 tỷ đồng; lãi thuần từ dịch vụ tăng mạnh 254% mang về hơn 101 tỷ đồng trong khi đó mảng kinh doanh ngoại hối ghi nhận sụt giảm 35,4% so với cùng kỳ.",
+                "Ngân hàng đã tăng gấp 4 lần chi phí trích lập dự phòng trong kỳ trong khi chi phí xử lý theo đề án tái cấu trúc ngân hàng giảm 40% so với cùng kỳ năm 2020.",
+                "Tính đến 30/9/2021, tổng tài sản của ngân hàng đạt hơn 81.100 tỷ đồng, giảm gần 8.500 tỷ đồng, tương đương giảm 9,5% so với cuối năm trước.",
+                "Trong khi đó, cho vay khách hàng của NCB vẫn ghi nhận tăng trưởng 2,5% đạt 41.341 tỷ đồng, tiền gửi khách hàng tại ngân hàng giảm hơn 2.624 tỷ đồng còn 68.904 tỷ đồng (giảm 3,6%).",
+                "Số dư nợ xấu của ngân hàng tăng mạnh 31,5% lên 800 tỷ đồng, keo theo tỷ lệ nợ xấu tăng từ 1,51% cuối năm trước lên 1,94%. Chủ yếu do nợ nhóm 5 tăng gần 9 lần so với đầu năm lên 434,8 tỷ đồng.",
+                "Đáng chú ý, lương thưởng cán bộ nhân viên ngân hàng tăng khá mạnh. Cụ thể, thu nhập bình quân nhân viên 9 tháng đầu năm tăng 22,8% lên 18,3 triệu đồng/tháng từ mức 14,9 triệu đồng/tháng vào cuối năm 2020."
+            ]
+        },
+        {
+            "id": "5",
+            "publisher": "vietnambiz",
+            "publish_time": "2020-06-09 16:08:00",
+            "title": "NHNN bơm ròng 25.000 tỉ đồng vào thị trường, lãi suất tiếp tục giảm",
+            "author": "Quốc Thụy",
+            "source": "https://vietnambiz.vn/nhnn-bom-rong-25000-ti-dong-vao-thi-truong-lai-suat-tiep-tuc-giam-20200609160314283.htm",
+            "ticker": [],
+            "scope": "MACRO",
+            "paragraphs": [
+                "Theo số liệu của bộ phận phân tích CTCP Chứng khoán SSI (SSI Research), tuần qua có 25.000 tỉ đồng được bơm ra thị trường mở thông qua tín phiếu đáo hạn. Đồng thời, Ngân hàng Nhà nước (NHNN) không thực hiện giao dịch mới nào.",
+                "Thanh khoản duy trì dồi dào khiến lãi suất tiếp tục giảm nhẹ trên liên ngân hàng, chốt tuần ở mức 0,43%/năm (giảm 0,06 điểm %) với kì hạn qua đêm và 0,6%/năm (giảm 0,15 điểm %).",
+                "\"Hiện thanh khoản các ngân hàng thương mại ổn định, lãi suất nhiều khả năng vẫn đi ngang ở vùng thấp và có thể nhích nhẹ vào cuối tháng – thời điểm chốt báo cáo tài chính quí\", nhóm phân tích SSI Research nhận định.",
+                "Theo thông tin từ NHNN, tăng trưởng tín dụng đến 29/5/2020 là 1,96% so với cuối năm 2019, cao hơn so với mức 1,42% tại cuối tháng 4.",
+                "\"Như vậy, sau nửa đầu tháng 5 sụt giảm, giải ngân tín dụng đã tăng trưởng tích cực trong nửa cuối tháng 5 nhưng vẫn rất thấp so với mức tăng trưởng quanh từ 5,8% - 7,0% của cùng kì các năm trước\", SSI Research đánh giá.",
+                "Trong khi đó, huy động tiền gửi có dấu hiệu tăng trưởng tích cực hơn trong quí II dù lãi suất đã điều chỉnh giảm đáng kể. Trong tuần, ngân hàng còn lại trong nhóm 4 ngân hàng thương mại lớn có vốn nhà nước giảm lãi suất tiền gửi 0,2 điểm%, đưa mức lãi suất huy động cả nhóm về ngang bằng nhau (6%/năm với kì hạn 12-13 tháng).",
+                "\"Như dự đoán của chúng tôi, các ngân hàng thương mại khác cũng giảm tiếp 0,1-0,3 điểm % lãi suất các kì hạn. Hiện tại, lãi suất tiền gửi ở mức 3,5% - 4,25%/năm với kì hạn dưới 6 tháng, 4,9% - 6,9%/năm với kì hạn từ 6 đến dưới 12 tháng, từ 6% - 7,6%/năm với kì hạn 12- 13 tháng\", nhóm phân tích cho biết.",
+                "Trên thị trường ngoại hối, tỷ giá USD/VND trong tuần trước đã giảm đồng loạt 30 đồng/USD trên cả tự do và ngân hàng. Tỷ giá trung tâm cũng giảm 16 đồng/USD, về mức 23.245 VND/USD.",
+                "Theo SSI Research, hiện tại, cung cầu ngoại tệ trong nước khá ổn định và các diễn biến quốc tế thuận lợi. Tuy nhiên, bối cảnh quốc tế có thể thay đổi nhanh chóng do dịch COVID-19 vẫn chưa được khống chế và mối quan hệ đầy bất ổn giữa Mỹ và Trung Quốc.",
+                "Mặt khác, mặc dù cán cân thương mại có thể được cải thiện khi các nước mở cửa trở lại nhưng nguồn cung ngoại tệ tại Việt Nam năm nay nhìn chung sẽ kém thuận lợi hơn so với năm trước khá nhiều và tạo áp lực nhất định lên tỷ giá.",
+                "Trên cơ cở đó, SSI Research dự báo trong ngắn hạn, VND khó tăng giá thêm, nhiều khả năng vẫn đi ngang ở vùng hiện tại."
+            ]
+        },
+        {
+            "id": "6",
+            "publisher": "cafef",
+            "publish_time": "2024-11-15 15:17:00",
+            "title": "SeABank bầu bổ sung 2 thành viên Ban kiểm soát, có Trưởng BKS mới",
+            "author": "Ngọc Phương",
+            "source": "https://cafef.vn/seabank-bau-bo-sung-2-thanh-vien-ban-kiem-soat-co-truong-bks-moi-188241115151805648.chn",
+            "ticker": [
+                "SSB"
+            ],
+            "scope": "MICRO",
+            "paragraphs": [
+                "Cụ thể, ông Nguyễn Ngọc Quỳnh và Ông Lương Duy Đông đã được ĐHĐCĐ tín nhiệm và bầu làm thành viên BKS nhiệm kỳ 2023 – 2028 với tỷ lệ 100% tán thành. Đây đều là những nhân sự có nhiều kinh nghiệm trong lĩnh vực tài chính ngân hàng cũng như thâm niên làm việc lâu năm tại SeABank, đáp ứng các tiêu chuẩn, điều kiện theo quy định pháp luật và được Ngân hàng Nhà nước chấp thuận theo Văn bản số 9333/NHNN-TTGSNH.",
+                "Đồng thời, Ông Nguyễn Ngọc Quỳnh cũng đã được bầu giữ chức vụ Trưởng BKS, thay thế Bà Vũ Thị Ngọc Quỳnh theo nguyện vọng cá nhân. Bà Vũ Thị Ngọc Quỳnh tiếp tục đảm nhiệm vai trò thành viên BKS của SeABank trong nhiệm kỳ 2023 – 2028.",
+                "Ông Nguyễn Ngọc Quỳnh sinh năm 1973, cử nhân kinh tế - Học viện Ngân hàng, đã có gần 30 năm kinh nghiệm trong lĩnh vực ngân hàng. Ông Quỳnh đã có hơn 20 năm gắn bó với SeABank ở các vị trí khác nhau, trong đó có gần 10 năm giữ vị trí quản lý, điều hành của Ngân hàng với vị trí Phó Tổng Giám đốc. Với những kinh nghiệm dày dặn, năng lực quản trị, điều hành và hiểu biết sâu sắc về hoạt động ngân hàng cũng như SeABank, Ông Quỳnh được kỳ vọng sẽ có nhiều đóng góp cho hoạt động của BKS nói riêng, và hoạt động Ngân hàng nói chung.",
+                "Ông Lương Duy Đông, sinh năm 1986, Cử nhân kiểm toán trường Đại học Kinh tế quốc dân, đã có 16 năm kinh nghiệm làm việc trong lĩnh vực kiểm toán, trong đó, 3 năm làm kiểm toán viên của Công ty TNHH Deloitte Việt Nam, 9 năm kinh nghiệm làm kiểm toán nội bộ tại SeABank và 4 năm đảm nhiệm chức vụ Trưởng BKS của Công ty Tài chính TNHH MTV Bưu điện (PTF). Với những kinh nghiệm đặc biệt trong lĩnh vực kiểm toán, Ông Lương Duy Đông hứa hẹn có nhiều đóng góp và hỗ trợ nâng cao năng lực của đội ngũ kiểm toán nội bộ của Ngân hàng.",
+                "SeABank cho biết, việc bầu bổ sung thành viên BKS nhằm đáp ứng theo yêu cầu của Luật các Tổ chức tín dụng 2024, đồng thời giúp SeABank nâng cao năng lực quản trị điều hành, đặc biệt là hoạt động giám sát, và thực thi chiến lược phát triển bền vững với trọng tâm là Quản trị - Môi trường - Xã hội (ESG) của Ngân hàng."
+            ]
+        },
+        {
+            "id": "7",
+            "publisher": "cafef",
+            "publish_time": "2021-10-29 13:30:00",
+            "title": "Vượt thách thức, MSB tự hào nhận chuỗi giải thưởng uy tín năm 2021",
+            "author": "Ánh Dương",
+            "source": "https://cafef.vn/vuot-thach-thuc-msb-tu-hao-nhan-chuoi-giai-thuong-uy-tin-nam-2021-20211029104847666.chn",
+            "ticker": [
+                "MSB"
+            ],
+            "scope": "MICRO",
+            "paragraphs": [
+                "Đây là sự ghi nhận cho kết quả tăng trưởng ấn tượng và ưu tiên phát triển bền vững của MSB, đồng thời cũng minh chứng cho vai trò đồng hành hiệu quả để \"vươn tầm\" cùng khách hàng, nhân viên, cổ đông và đối tác.",
+                "Vừa qua, MSB được Vietnam Report vinh danh thuộc Top 10 Ngân hàng TMCP tư nhân uy tín nhất Việt Nam dựa trên tiêu chí về năng lực tài chính; ý kiến đánh giá từ doanh nghiệp, chuyên gia, người tiêu dùng; và mô hình phân tích lượng hóa uy tín trên truyền thông.",
+                "Theo đó, về kết quả kinh doanh, tính đến hết tháng 9.2021, tổng tài sản của ngân hàng đạt 195,5 ngàn tỷ, tăng 10.65% so với đầu năm, vượt kế hoạch mục tiêu đặt ra năm 2021. Lợi nhuận trước thuế đạt trên 4.102 tỷ đồng, vượt kế hoạch của cả năm 2021 (3.200 tỷ đồng).",
+                "Bên cạnh đó,giá trị thương hiệu MSB ngày càng nâng tầm thông qua các hoạt động truyền thông ghi nhận nhiều dấu ấn trên thị trường.Ngân hàng cũng được đánh giá cao qua kết quả khảo sát mức độ nhận biết và sự hài lòng của khách hàng với các sản phẩm/dịch vụ. Riêng trong giai đoạn Covid-19 diễn biến phức tạp, MSB đã đẩy mạnh dịch vụ ngân hàng điện tử miễn phí, thúc đẩy giao dịch không tiền mặt, không cần đến quầy, đem lại nhiều tiện ích cho khách hàng cá nhân và doanh nghiệp. Ngân hàng cũng cho ra mắt các gói tín dụng ưu đãi, tiến hành giảm lãi, cơ cấu thời gian trả nợ cho các khách hàng chịu tác động của dịch bệnh theo Thông tư 03 và Thông tư 14 của NHNN.",
+                "Vươn tầm giải thưởng quốc tế thông qua các sản phẩm, dịch vụ thuận ích",
+                "Với sứ mệnh \"Vì một cuộc sống thuận ích hơn\", MSB liên tục cho ra mắt những sản phẩm, dịch vụ hiện đại, tiện ích và mang lại giá trị cao cho khách hàng. Từ những nỗ lực đó, Tạp chí Kinh tế Thế giới (World Economic Magazine) đã vinh danh MSB là Ngân hàng có sản phẩm bán lẻ sáng tạo nhất thông qua việc đánh giá tính ưu việt của ứng dụng MSB Plus.",
+                "Được đánh giá độc lập bởi Hội đồng gồm những chuyên gia hàng đầu về tài chính – ngân hàng, giải thưởng uy tín này là sự ghi nhận cho những nỗ lực của MSB để am hiểu sâu sắc và đáp ứng nhu cầu đa dạng của khách hàng. Hướng tới việc gia tăng trải nghiệm, MSB Plus cho phép người dùng quản lý dễ dàng và thông minh các giao dịch liên quan tới thẻ tín dụng như mở thẻ hoàn toàn trực tuyến, sao kê thẻ, quản lý chi tiêu, hoàn tiền, đổi quà hay chuyển đổi trả góp... Đồng thời, để mang tới chủ thẻ trải nghiệm mua sắm hứng khởi, MSB Plus cũng cập nhật liên tục các ưu đãi như hoàn tiền tới 20% khi shopping online, giảm giá tới 30% tại hơn 300 cửa hàng trong Thế giới ưu đãi Joy, trả góp linh hoạt phí chuyển đổi 0%,...",
+                "Không chỉ hướng tới khách hàng cá nhân, MSB cũng đồng hành cùng doanh nghiệp \"vươn tầm\", đặc biệt là doanh nghiệp vừa và nhỏ. Từ những giá trị mà MSB mang tới, vừa qua, Ngân hàng được ADB vinh danh là đơn vị\" dẫn đầu về tài trợ thương mại cho doanh nghiệp vừa và nhỏ năm 2021\". Giải thưởng là sự ghi nhận thành tích nổi bật của MSB trong Chương trình Tài trợ thương mại quốc tế (TFP - Trade Finance Program) khi trở thành quán quân về số lượng giao dịch tài trợ thương mại và giá trị giải ngân trong thời gian từ 01/7/2020 tới 30/6/2021.",
+                "Khẳng định vị thế với giải thưởng \"Best Bank\" và \"Best companies to work for\"",
+                "\"Ngân hàng tốt nhất\" – \"Best Bank\" là giải thưởng uy tín mà MSB được vinh danh trong 3 năm liên tiếp do Global Finance chứng nhận. Để được xướng tên tại hạng mục này, ngoài kết quả kinh doanh ấn tượng dù Covid-19 tác động mạnh, MSB cũng tạo nên nhiều dấu ấn lớn khác trên thị trường. Tiêu biểu, tháng 6 vừa qua, dự án Nhà máy số (Digital Factory) với mức đầu tư xấp xỉ 2000 tỷ đồng đã chính thức khởi động. Với sự đồng hành từ BCG – tập đoàn công nghệ hàng đầu thế giới, dự án là bước đầu tư bài bản về tài chính và nguồn lực của MSB, hướng tới lộ trình đến năm 2022- 2023 sẽ đem lại nguồn lợi nhuận đột phá cho ngân hàng.",
+                "Bên cạnh đó, MSB đã kí kết với Temenos – đối tác quy mô toàn cầu về phần mềm ngân hàng để triển khai giải pháp nâng cấp hệ thống ngân hàng lõi (Core Banking) với tổng vốn đầu tư lên tới 500 tỷ đồng. Hệ thống Core Banking mới là cơ sở để ngân hàng tối ưu hóa chi phí và quy trình, tạo động lực dẫn dắt tăng trưởng trong tương lai.",
+                "Tập trung vào mục tiêu đẩy mạnh kinh doanh, nhưng MSB vẫn song song phát triển bền vững. Nối tiếp thành quả từ những năm trước, trong năm 2021, MSB tiếp tục là ngân hàng tiên phong trên hành trình phát triển và hoàn thiện nền tảng quản trị rủi ro hiện đại theo chuẩn quốc tế. Hiện MSB đang áp dụng quản trị rủi ro tín dụng theo phương pháp xếp hạng nội bộ của chuẩn mực Basel II, đồng thời triển khai Basel III trong quản trị rủi ro hoạt động, thị trường và thanh khoản.",
+                "Cũng trong năm 2021, Tổ chức xếp hạng tín nhiệm uy tín hàng đầu thế giới Moody’s đã công bố nâng xếp hạng tín nhiệm và đánh giá triển vọng ổn định cho MSB. Kết quả này phản ánh chất lượng tài sản và khả năng sinh lời của ngân hàng được cải thiện, đồng thời nguồn vốn cốt lõi của MSB cũng có tiềm năng ổn định trong 12-18 tháng tới theo kỳ vọng của tổ chức này.",
+                "Không chỉ là bạn đồng hành tin cậy của khách hàng hay đối tác, với nhân viên nội bộ, MSB còn là đối tác vươn tầm sự nghiệp, mang tới cho cán bộ nhân viên môi trường chuyên nghiệp, tận tâm và hạnh phúc để sẵn sàng cống hiến. Trên cơ sở chính sách nhân sự vượt trội, chế độ đãi ngộ hấp dẫn, môi trường làm việc hiệu quả, năng động và văn hóa nội bộ gắn kết cán bộ nhân viên, MSB được Tạp chí HR Asia bình chọn là là một trong những \"Nơi làm việc tốt nhất Châu Á 2021\". Khảo sát cũng cho thấy MSB sở hữu các chỉ số vượt trội hơn so với chuẩn ngành và thị trường, như chỉ số về \"môi trường khích lệ nhân sự\" đạt 4,54/5 điểm (bình quân ngành là 3,98); chỉ số \"doanh nghiệp sẵn sàng tương trợ\" đạt 4,65/5 (bình quân ngành là 4,11).",
+                "Những giải thưởng uy tín trong nước và quốc tế là minh chứng cho nỗ lực của MSB trong hành trình \"vươn tầm\" cùng khách hàng, nhân viên, cổ đông và đối tác. Đây cũng là động lực để MSB tiếp tục sáng tạo nhiều sản phẩm, dịch vụ vượt trội với hàm lượng công nghệ cao, đóng góp cho sự tăng trưởng của ngành tài chính – ngân hàng trong tương lai."
+            ]
+        },
+        {
+            "id": "8",
+            "publisher": "cafef",
+            "publish_time": "2025-12-17 13:30:00",
+            "title": "MSB nhân đôi lợi ích cho khách hàng nhận kiều hối",
+            "author": "Ánh Dương",
+            "source": "https://cafef.vn/msb-nhan-doi-loi-ich-cho-khach-hang-nhan-kieu-hoi-188251217122158139.chn",
+            "ticker": [
+                "MSB"
+            ],
+            "scope": "MICRO",
+            "paragraphs": [
+                "Thời điểm cuối năm và Tết Nguyên Đán luôn là giai đoạn cao điểm của dòng tiền kiều hối chuyển về Việt Nam. Theo thống kê, Việt Nam liên tục nằm trong nhóm 10 quốc gia nhận kiều hối lớn nhất toàn cầu. Riêng trong năm 2024, tổng lượng kiều hối về nước ước đạt khoảng 16 tỷ USD, tương đương 4% GDP của cả nước. Nguồn lực tài chính quan trọng này không chỉ hỗ trợ đời sống gia đình mà còn đóng vai trò then chốt trong việc bổ sung thanh khoản ngoại tệ, hỗ trợ cán cân thanh toán quốc gia.",
+                "Nhằm tối đa hóa lợi ích tài chính và tri ân khách hàng nhận tiền kiều hối, Ngân hàng Thương mại Cổ phần Hàng Hải Việt Nam (MSB) chính thức triển khai chương trình ưu đãi mang tên \"Kiều hối sinh lời, x2 ưu đãi\", kéo dài từ nay đến hết ngày 31/03/2026. Chương trình được thiết kế để giải quyết hai mối quan tâm lớn nhất của người nhận tiền gồm chi phí giao dịch và hiệu quả chuyển đổi ngoại tệ.",
+                "Điểm khác biệt của chương trình nằm ở việc MSB mang lại lợi ích kép: khách hàng không chỉ được giảm/miễn phí rút tiền mặt tại quầy giao dịch, giúp khoản tiền thực nhận được trọn vẹn, mà còn được áp dụng tỷ giá mua ngoại tệ ưu đãi đặc biệt so với niêm yết thông thường. Sự kết hợp này đảm bảo mỗi đồng ngoại tệ khi chuyển về không chỉ được nhận dễ dàng mà còn được sinh lời ngay lập tức, gia tăng đáng kể số tiền cho người nhận.",
+                "Cụ thể, khách hàng nhận kiều hối qua tài khoản MSB và có nhu cầu bán ngoại tệ (USD) lấy VND sẽ được hưởng ưu đãi tỷ giá lên đến 50 điểm so với tỷ giá mua chuyển khoản niêm yết. Đây là một lợi thế cạnh tranh, có ý nghĩa lớn khi quy đổi với các khoản tiền lớn, giúp khách hàng nhận được nhiều VND hơn cho cùng một lượng USD, làm gia tăng khả năng chi tiêu và sinh lời trực tiếp từ nguồn kiều hối được người thân gửi về. Chính sách ưu đãi này được áp dụng rộng rãi cho khách hàng có USD trong tài khoản tại MSB, giao dịch tại quầy hoặc qua ứng dụng MSB mBank.",
+                "Đồng thời, nhằm giảm gánh nặng chi phí giao dịch, MSB triển khai ưu đãi giảm phí rút ngoại tệ mặt USD cho Khách hàng nhận kiều hối qua kênh SWIFT về tài khoản thanh toán tại MSB, với mức phí mới chỉ còn 0.16% (tối thiểu 2USD) so với mức cũ 0.2% (tối thiểu 2USD). Việc giảm phí rút tiền mặt ngoại tệ là hành động thiết thực giúp người nhận tiền tiết kiệm chi phí trực tiếp, đặc biệt đối với các khoản kiều hối lớn, góp phần giữ trọn vẹn giá trị của dòng tiền hỗ trợ từ nước ngoài.",
+                "Đại diện MSB cho biết, đây không chỉ là một chương trình khuyến mãi thông thường, mà còn mang đến cho khách hàng một giải pháp tài chính, được thiết kế nhằm tối đa hóa giá trị sinh lời của nguồn kiều hối, đồng thời tạo động lực cho sự phát triển kinh tế chung. Việc kết hợp giữa ưu đãi tỷ giá cạnh tranh và giảm phí rút ngoại tệ mặt giúp người nhận kiều hối tại Việt Nam tận hưởng trọn vẹn lợi ích, gia tăng giá trị và sinh lời trên mỗi đồng tiền chuyển về. Quan trọng hơn, chính sách ưu đãi này còn là đòn bẩy/động lực khuyến khích dòng tiền kiều hối chuyển về Việt Nam.",
+                "Là một trong những ngân hàng thương mại hàng đầu với các sản phẩm và dịch vụ thanh toán quốc tế đa dạng, kết quả kinh doanh mảng kiều hối của MSB ghi nhận nhiều điểm sáng đáng chú ý, thể hiện cả ở quy mô doanh số, tốc độ tăng trưởng và hiệu quả sinh lời. Không chỉ cung cấp dịch vụ nhận kiều hối từ nước ngoài, MSB còn cung cấp dịch vụ chuyển tiền quốc tế, đáp ứng đa dạng các nhu cầu từ du học, du lịch, công tác, khám chữa bệnh, định cư, trợ cấp thân nhân ở nước ngoài hay các giao dịch chuyển tiền hợp pháp khác cùng các chương trình ưu đãi miễn phí chuyển tiền vào các dịp Lễ, Tết và tỷ giá cạnh tranh...",
+                "Chi tiết về các chương trình dành cho khách hàng cá nhân xem tại đây, hotline: 1900 6083 hoặc Chi nhánh/Phòng giao dịch MSB gần nhất để được hỗ trợ."
+            ]
+        },
+        {
+            "id": "9",
+            "publisher": "cafef",
+            "publish_time": "2025-12-30 10:43:00",
+            "title": "Cập nhật thị trường tiền tệ ngày 30/12: Lãi suất qua đêm giảm sâu về vùng 3%, bằng một nửa so với đầu tuần trước",
+            "author": "Mạnh Đức",
+            "source": "https://cafef.vn/cap-nhat-thi-truong-tien-te-ngay-30-12-lai-suat-qua-dem-giam-sau-ve-vung-3-bang-mot-nua-so-voi-dau-tuan-truoc-188251230104515009.chn",
+            "ticker": [],
+            "scope": "MACRO",
+            "paragraphs": [
+                "Đóng cửa phiên 29/12, lãi suất chào bình quân liên ngân hàng VND biến động trái chiều giữa các kỳ hạn so với phiên cuối tuần trước. Cụ thể, lãi suất qua đêm giảm mạnh 1,00 điểm phần trăm, xuống còn 3,30%/năm. Lãi suất kỳ hạn 1 tuần giảm nhẹ 0,05 điểm phần trăm, giao dịch tại 8,50%/năm. Lãi suất kỳ hạn 2 tuần giảm 0,03%, giữ ở mức 8,70%/năm, trong khi lãi suất kỳ hạn 1 tháng tăng 0,15 điểm phần trăm, lên 7,75%/năm.",
+                "Như vậy, trong vòng một tuần qua, lãi suất lãi suất chào bình quân liên ngân hàng VND tại kỳ hạn qua đêm - kỳ hạn chính chiếm khoảng 80% giá trị giao dịch - đã giảm hơn một nửa. Trong khi lãi suất các kỳ hạn dài hơn vẫn duy trì ở mức cao.",
+                "Đối với USD, lãi suất liên ngân hàng điều chỉnh nhẹ. Lãi suất qua đêm giảm 0,01 điểm phần trăm, xuống 3,68%/năm. Lãi suất kỳ hạn 1 tuần không thay đổi, duy trì ở mức 3,76%/năm. Lãi suất kỳ hạn 2 tuần giảm 0,02 điểm phần trăm, còn 3,79%/năm. Riêng kỳ hạn 1 tháng tăng nhẹ 0,01 điểm phần trăm, lên 3,86%/năm.",
+                "Nghiệp vụ thị trường mở, trên kênh cho vay cầm cố giấy tờ có giá (OMO), trong phiên 29/12, Ngân hàng Nhà nước chào thầu 5.000 tỷ đồng ở mỗi kỳ hạn 14 ngày và 91 ngày, cùng 1.000 tỷ đồng ở kỳ hạn 28 ngày, với lãi suất áp dụng đồng loạt ở mức 4,5%/năm.",
+                "Kết quả, có 5.000 tỷ đồng trúng thầu ở kỳ hạn 14 ngày và 4.967 tỷ đồng trúng thầu ở kỳ hạn 91 ngày, trong khi kỳ hạn 28 ngày không có khối lượng trúng thầu. Trong ngày, có 9.511 tỷ đồng đáo hạn. Ngân hàng Nhà nước không chào thầu tín phiếu.",
+                "Như vậy, trong phiên giao dịch này, Ngân hàng Nhà nước bơm ròng khoảng 456 tỷ đồng ra thị trường. Tổng khối lượng lưu hành trên kênh cầm cố ở mức 381.907 tỷ đồng.",
+                "Về thị trường ngoại tệ, trong phiên giao dịch ngày 29/12, Ngân hàng Nhà nước điều chỉnh giảm nhẹ tỷ giá trung tâm. Theo đó, tỷ giá trung tâm được niêm yết ở mức 25.125 VND/USD, giảm 3 đồng so với phiên cuối tuần trước.",
+                "Tỷ giá mua giao ngay được niêm yết tại Sở Giao dịch ở mức 23.919 VND/USD, cao hơn 50 đồng so với tỷ giá sàn, trong khi tỷ giá bán giao ngay được niêm yết tại 26.331 VND/USD, thấp hơn 50 đồng so với tỷ giá trần.",
+                "Trên thị trường liên ngân hàng, tỷ giá USD/VND chốt phiên ở mức 26.285 VND/USD, giảm 7 đồng so với phiên 26/12.",
+                "Trên thị trường tự do, tỷ giá USD giữ nguyên ở chiều mua vào trong khi giảm 30 đồng ở chiều bán ra, giao dịch quanh mức 26.750 VND/USD và 26.820 VND/USD."
+            ]
+        },
+        {
+            "id": "10",
+            "publisher": "cafef",
+            "publish_time": "2023-07-13 15:29:00",
+            "title": "Giám đốc Kế toán Techcombank muốn bán phần lớn cổ phiếu TCB nắm giữ",
+            "author": "Quốc Thụy",
+            "source": "https://cafef.vn/giam-doc-ke-toan-techcombank-muon-ban-phan-lon-co-phieu-tcb-nam-giu-188230713152931596.chn",
+            "ticker": [
+                "TCB"
+            ],
+            "scope": "MICRO",
+            "paragraphs": [
+                "Ngân hàng TMCP Kỹ Thương (Techcombank – Mã: TCB) vừa có báo cáo về giao dịch cổ phiếu TCB của bà Thái Hà Linh - Người công bố thông tin kiêm Giám đốc Kế toán ngân hàng.",
+                "Theo đó, bà Linh đăng kí bán hơn 933.000 cổ phiếu sở hữu nhằm phục vụ nhu cầu tài chính cá nhân. Giao dịch dự kiến diễn ra từ ngày 17/7 đến ngày 19/8 theo phương thức khớp lệnh trên sàn và thỏa thuận.",
+                "Nếu thành công, “sếp” Techcombank sẽ giảm lượng cổ phiếu TCB sở hữu từ gần 1,119 triệu đơn vị xuống còn hơn 185.000 đơn vị, tương đương 0,0053% vốn điều lệ Techcombank.",
+                "Đóng cửa ngày 13/7, thị giá TCB tăng 0,95% lên 31.950 đồng/cp. Ước tính theo mức giá này, bà Linh sẽ thu về khoảng 30 tỷ đồng từ bán cổ phiếu TCB.",
+                "Về kết quả kinh doanh của Techcombank, ngân hàng ghi nhận lợi nhuận trước thuế quý 1/2023 đạt 5.600 tỷ đồng, giảm 17% so với cùng kỳ và tăng 18,5% so với quý 4/2022.",
+                "Tính đến cuối tháng 3 năm nay, tổng tài sản của Techcombank ở mức 723,5 nghìn tỷ đồng, tăng 3,5% so với đầu năm và tăng 17,6% so với cùng kỳ năm 2022. Dư nợ cho vay khách hàng tăng 9,3% so với đầu năm. Tiền gửi của khách hàng tăng 8,1%.",
+                "Tỷ lệ an toàn vốn (CAR) của ngân hàng theo Basel II ở mức 15% vào cuối quý 1 năm 2023, tiếp tục duy trì vị thế đầu ngành và cao hơn gần gấp đôi so với yêu cầu tối thiểu 8,0% của trụ cột I, Basel II. Tỷ lệ nợ xấu (NPL) ở mức 0,85%, thuộc nhóm thấp nhất trong hệ thống."
+            ]
+        }
+    ]
+}
