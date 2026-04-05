@@ -17,6 +17,9 @@ import {
 const emptyConfig = {
   aspects_categories: [],
   aspects: [],
+  entities: [],
+  attributes: [],
+  entity_attributes: {},
   sentiments: [],
   scopes: [],
 };
@@ -28,8 +31,14 @@ function App() {
   const [isEditingText, setIsEditingText] = useState(false);
   const [textDraft, setTextDraft] = useState("");
   const [selection, setSelection] = useState(null);
-  const [selectedAspect, setSelectedAspect] = useState(null);
+  const [selectedEntity, setSelectedEntity] = useState(null);
+  const [selectedAttribute, setSelectedAttribute] = useState(null);
   const [selectedSentiment, setSelectedSentiment] = useState(null);
+  const [selectedTriggerEntity, setSelectedTriggerEntity] = useState("NULL");
+  const [selectedTargetEntitiesText, setSelectedTargetEntitiesText] =
+    useState("NULL");
+  const [selectedOpinionTerm, setSelectedOpinionTerm] = useState("");
+  const [selectedLabelScope, setSelectedLabelScope] = useState(null);
   const [editingLabelIndex, setEditingLabelIndex] = useState(null);
   const [showLabelModal, setShowLabelModal] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
@@ -51,12 +60,13 @@ function App() {
   const total_paragraph = dataset.length;
   const annotatedCount = useMemo(
     () =>
-      dataset.filter((item) => (item.labels?.length || 0) > 0 && !item.skipped)
-        .length,
+      dataset.filter(
+        (item) => (item.labels?.length || 0) > 0 && !item.no_aspect,
+      ).length,
     [dataset],
   );
-  const skippedCount = useMemo(
-    () => dataset.filter((item) => item.skipped).length,
+  const noAspectCount = useMemo(
+    () => dataset.filter((item) => item.no_aspect).length,
     [dataset],
   );
   const spanCount = useMemo(
@@ -76,11 +86,18 @@ function App() {
       ).size,
     [dataset],
   );
-  const remainingCount = total_paragraph - annotatedCount - skippedCount;
+  const remainingCount = total_paragraph - annotatedCount - noAspectCount;
+
+  const availableAttributes = useMemo(() => {
+    const entityMap = config.entity_attributes || {};
+    if (!selectedEntity) return [];
+    if (entityMap[selectedEntity]) return entityMap[selectedEntity];
+    return config.attributes || [];
+  }, [config, selectedEntity]);
 
   const progress =
     total_paragraph > 0
-      ? ((annotatedCount + skippedCount) / total_paragraph) * 100
+      ? ((annotatedCount + noAspectCount) / total_paragraph) * 100
       : 0;
 
   useEffect(() => {
@@ -93,9 +110,11 @@ function App() {
         const dataRes = await fetch("/api/data");
         const data = await dataRes.json();
         setDataset(data);
+        console.log(data);
 
         const first = data.findIndex(
-          (item) => (!item.labels || item.labels.length === 0) && !item.skipped,
+          (item) =>
+            (!item.labels || item.labels.length === 0) && !item.no_aspect,
         );
         setCurrentIndex(first === -1 ? 0 : first);
       } catch (error) {
@@ -112,11 +131,27 @@ function App() {
   }, [currentIndex, dataset]);
 
   useEffect(() => {
+    if (!selectedEntity) {
+      setSelectedAttribute(null);
+      return;
+    }
+
+    if (
+      selectedAttribute &&
+      availableAttributes.length > 0 &&
+      !availableAttributes.includes(selectedAttribute)
+    ) {
+      setSelectedAttribute(null);
+    }
+  }, [selectedEntity, selectedAttribute, availableAttributes]);
+
+  useEffect(() => {
     if (!showStatsModal) return;
     const fetchStats = async () => {
       try {
         const res = await fetch("/api/stats");
         const data = await res.json();
+        console.log("Stats data fetched:", data);
         setStatsData(data);
       } catch (error) {
         console.error("Failed to fetch stats", error);
@@ -145,8 +180,13 @@ function App() {
     const end = start + selectionObj.toString().length;
 
     setSelection({ start, end, text: selectionObj.toString() });
-    setSelectedAspect(null);
+    setSelectedEntity(null);
+    setSelectedAttribute(null);
     setSelectedSentiment(null);
+    setSelectedTriggerEntity("NULL");
+    setSelectedTargetEntitiesText("NULL");
+    setSelectedOpinionTerm(selectionObj.toString());
+    setSelectedLabelScope(articleMeta.scope || null);
     setEditingLabelIndex(null);
     setShowLabelModal(true);
     selectionObj.removeAllRanges();
@@ -172,14 +212,31 @@ function App() {
   };
 
   const confirmLabel = async () => {
-    if (!selection || !selectedAspect || !selectedSentiment) return;
+    if (
+      !selection ||
+      !selectedEntity ||
+      !selectedAttribute ||
+      !selectedSentiment ||
+      !selectedLabelScope
+    )
+      return;
+
+    const targetEntities = (selectedTargetEntitiesText || "NULL")
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
 
     const newLabel = {
       start: selection.start,
       end: selection.end,
-      text: selection.text,
-      aspect: selectedAspect,
+      span: selection.text,
+      entity: selectedEntity,
+      attribute: selectedAttribute,
       sentiment: selectedSentiment,
+      trigger_entity: selectedTriggerEntity || "NULL",
+      target_entities: targetEntities.length > 0 ? targetEntities : ["NULL"],
+      opinion_term: selectedOpinionTerm || "",
+      scope: selectedLabelScope,
     };
 
     const labels = [...(currentItem.labels || [])];
@@ -192,7 +249,7 @@ function App() {
     const updated = {
       ...currentItem,
       labels,
-      skipped: false,
+      no_aspect: false,
     };
 
     setShowLabelModal(false);
@@ -210,11 +267,19 @@ function App() {
   const markNoAspects = async () => {
     const updated = {
       ...currentItem,
-      skipped: true,
+      no_aspect: true,
       labels: currentItem.labels || [],
     };
     await saveCurrentItem(updated, currentIndex + 1);
     maybeOpenClassificationModal(updated.article_id);
+  };
+
+  const toggleCheckedByHuman = async () => {
+    const updated = {
+      ...currentItem,
+      checked: !currentItem.checked,
+    };
+    await saveCurrentItem(updated);
   };
 
   const toggleEditText = () => {
@@ -227,7 +292,7 @@ function App() {
       ...currentItem,
       text: textDraft,
       labels: [],
-      skipped: false,
+      no_aspect: false,
     };
     setIsEditingText(false);
     saveCurrentItem(updated);
@@ -256,12 +321,12 @@ function App() {
 
     if (paragraphRaw !== undefined && paragraphRaw !== "") {
       const paragraphNum = Number(paragraphRaw);
-      if (!Number.isNaN(paragraphNum)) {
+      if (!Number.isNaN(paragraphNum) && paragraphNum >= 1) {
         index = dataset.findIndex((item) => {
-          const idx = item.paragraph_index ?? item.sentence_idx ?? 0;
+          const idx = item.paragraph_index ?? item.sentence_idx ?? 1;
           return (
             String(item.article_id) === String(articleId) &&
-            idx + 1 === paragraphNum
+            idx === paragraphNum
           );
         });
       }
@@ -269,7 +334,7 @@ function App() {
 
     if (index === -1) {
       index = dataset.findIndex((item) => {
-        const idx = item.paragraph_index ?? item.sentence_idx ?? 0;
+        const idx = item.paragraph_index ?? item.sentence_idx ?? 1;
         return `${item.article_id}_${idx}` === id;
       });
     }
@@ -284,9 +349,9 @@ function App() {
     if (items.length === 0) return false;
     return items.every((item) => {
       const hasLabel = (item.labels?.length || 0) > 0;
-      const isSkipped = Boolean(item.skipped);
+      const isNoAspect = Boolean(item.no_aspect);
       const isEmpty = !(item.text || "").trim();
-      return hasLabel || isSkipped || isEmpty;
+      return hasLabel || isNoAspect || isEmpty;
     });
   }
 
@@ -338,7 +403,7 @@ function App() {
     const labels = [...(currentItem.labels || [])].sort(
       (a, b) => a.start - b.start,
     );
-    if (currentItem.skipped) return [text];
+    if (currentItem.no_aspect) return [text];
 
     const parts = [];
     let lastIndex = 0;
@@ -359,11 +424,18 @@ function App() {
         <span
           key={`${start}-${end}-${idx}`}
           className={`cursor-pointer rounded px-1 border-b-2 ${colorClass}`}
-          title={`${lbl.aspect} > ${sentiment}`}
+          title={`${lbl.entity} / ${lbl.attribute} > ${sentiment}`}
           onClick={() => {
             setSelection({ start, end, text: text.slice(start, end) });
-            setSelectedAspect(lbl.aspect);
+            setSelectedEntity(lbl.entity);
+            setSelectedAttribute(lbl.attribute);
             setSelectedSentiment(lbl.sentiment);
+            setSelectedTriggerEntity(lbl.trigger_entity || "NULL");
+            setSelectedTargetEntitiesText(
+              (lbl.target_entities || []).join(", ") || "NULL",
+            );
+            setSelectedOpinionTerm(lbl.opinion_term || text.slice(start, end));
+            setSelectedLabelScope(lbl.scope || articleMeta.scope || null);
             setEditingLabelIndex(idx);
             setShowLabelModal(true);
           }}
@@ -412,14 +484,13 @@ function App() {
 
         <div className="space-y-6 p-6">
           <section className="space-y-4 rounded-xl bg-slate-50// p-4 text-sm font-semibold text-slate-600">
-            <div className="grid gap-0 md:grid-cols-6">
+            <div className="grid gap-0 md:grid-cols-5">
               <div className="text-center">
                 <span className="text-2xl text-indigo-600">
                   {totalArticleCount}
                 </span>
                 <div>Articles</div>
-              </div>
-              <div className="text-center">
+                <br />
                 <span className="text-2xl text-indigo-600">
                   {total_paragraph}
                 </span>
@@ -435,8 +506,9 @@ function App() {
               </div>
               <div className="text-center">
                 <div className="text-2xl text-emerald-600">
-                  {annotatedCount}({" "}
-                  {((annotatedCount / total_paragraph) * 100).toFixed(2)}%)
+                  {annotatedCount}
+                  <br />
+                  {((annotatedCount / total_paragraph) * 100).toFixed(2)}%
                 </div>
 
                 <div>
@@ -447,8 +519,9 @@ function App() {
               </div>
               <div className="text-center">
                 <div className="text-2xl text-amber-600">
-                  {skippedCount} (
-                  {((skippedCount / total_paragraph) * 100).toFixed(2)}%)
+                  {noAspectCount}
+                  <br />
+                  {((noAspectCount / total_paragraph) * 100).toFixed(2)}%
                 </div>
 
                 <div>
@@ -458,13 +531,13 @@ function App() {
               </div>
               <div className="text-center">
                 <div className="text-2xl text-rose-600">
-                  {remainingCount} ({" "}
-                  {100 -
-                    (
-                      ((annotatedCount + skippedCount) / total_paragraph) *
-                      100
-                    ).toFixed(2)}
-                  %)
+                  {remainingCount}
+                  <br />
+                  {(
+                    100 -
+                    ((annotatedCount + noAspectCount) / total_paragraph) * 100
+                  ).toFixed(2)}
+                  %
                 </div>
 
                 <div>
@@ -495,7 +568,9 @@ function App() {
                 {articleMeta.publisher || "N/A"}
               </span>
               <span className="rounded-full bg-white/20 px-3 py-1">
-                {articleMeta.publish_time || "N/A"}
+                {articleMeta.publish_datetime ||
+                  articleMeta.publish_time ||
+                  "N/A"}
               </span>
               <span className="rounded-full bg-white/20 px-3 py-1">
                 Scope: {articleMeta.scope || "N/A"}
@@ -577,6 +652,12 @@ function App() {
               Save
             </button>
             <button
+              className={`rounded-lg px-4 py-2 text-sm font-semibold text-white cursor-pointer hover:opacity-50 ${currentItem.checked ? "bg-cyan-600" : "bg-cyan-400"}`}
+              onClick={toggleCheckedByHuman}
+            >
+              {currentItem.checked ? "Checked by Human" : "Mark Checked"}
+            </button>
+            <button
               className={`rounded-lg px-4 py-2 text-sm font-semibold text-white cursor-pointer hover:opacity-50  ${articleComplete ? "bg-indigo-500" : "bg-indigo-300 cursor-not-allowed"}`}
               onClick={openClassificationModal}
               disabled={!articleComplete}
@@ -611,13 +692,18 @@ function App() {
                 {(currentItem.labels || []).length} labels
               </div>
             </div>
+            {currentItem.checked && (
+              <div className="mb-2 inline-flex rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-700">
+                Checked by Human
+              </div>
+            )}
             {(currentItem.labels || []).length === 0 &&
-              !currentItem.skipped && (
+              !currentItem.no_aspect && (
                 <div className="text-sm text-slate-400">
                   Select text to add labels.
                 </div>
               )}
-            {currentItem.skipped && (
+            {currentItem.no_aspect && (
               <div className="text-sm text-emerald-600">
                 No aspects in this paragraph.
               </div>
@@ -633,11 +719,19 @@ function App() {
                       <span
                         className={`mr-2 rounded-full bg-slate-100 px-2 py-0.5 font-semibold ${lbl.sentiment == "NEGATIVE" ? "text-red-600" : lbl.sentiment == "POSITIVE" ? "text-green-600" : "text-yellow-600"}`}
                       >
-                        {lbl.sentiment} # {lbl.aspect}
+                        {lbl.sentiment} | {lbl.entity} | {lbl.attribute}
                       </span>
                     </div>
                     <span className="ml-2 text-slate-500">
-                      “{currentItem.text?.slice(lbl.start, lbl.end)}”
+                      Span: {currentItem.text?.slice(lbl.start, lbl.end)}
+                    </span>
+                    <span className="ml-2 text-slate-500 text-xs//">
+                      Opinion term: {lbl.opinion_term || "N/A"}
+                    </span>
+                    <span className="ml-2 text-slate-500 text-xs//">
+                      Trigger: {lbl.trigger_entity || "NULL"} | Targets:{" "}
+                      {(lbl.target_entities || []).join(", ") || "NULL"} |
+                      Scope: {lbl.scope || "N/A"}
                     </span>
                   </div>
                   <button
@@ -664,19 +758,68 @@ function App() {
             </div>
             <div className="mb-4">
               <div className="mb-2 text-xs font-semibold uppercase text-slate-400">
-                Aspect
+                Entity
               </div>
               <div className="flex flex-wrap gap-2">
-                {(config.aspects || []).map((asp) => (
+                {(config.entities || config.aspects || []).map((entity) => (
                   <button
-                    key={asp}
-                    className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${selectedAspect === asp ? "bg-indigo-500 text-white shadow ring-2 ring-amber-400/70" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-200"}`}
-                    onClick={() => setSelectedAspect(asp)}
+                    key={entity}
+                    className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${selectedEntity === entity ? "bg-indigo-500 text-white shadow ring-2 ring-amber-400/70" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-200"}`}
+                    onClick={() => setSelectedEntity(entity)}
                   >
-                    {asp}
+                    {entity}
                   </button>
                 ))}
               </div>
+            </div>
+            <div className="mb-4">
+              <div className="mb-2 text-xs font-semibold uppercase text-slate-400">
+                Attribute
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(availableAttributes || []).map((attribute) => (
+                  <button
+                    key={attribute}
+                    className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${selectedAttribute === attribute ? "bg-indigo-500 text-white shadow ring-2 ring-amber-400/70" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-200"}`}
+                    onClick={() => setSelectedAttribute(attribute)}
+                  >
+                    {attribute}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mb-4">
+              <div className="mb-2 text-xs font-semibold uppercase text-slate-400">
+                Trigger Entity
+              </div>
+              <input
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                value={selectedTriggerEntity}
+                onChange={(e) => setSelectedTriggerEntity(e.target.value)}
+                placeholder="VD: Ngan hang Nha nuoc"
+              />
+            </div>
+            <div className="mb-4">
+              <div className="mb-2 text-xs font-semibold uppercase text-slate-400">
+                Target Entities (comma-separated)
+              </div>
+              <input
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                value={selectedTargetEntitiesText}
+                onChange={(e) => setSelectedTargetEntitiesText(e.target.value)}
+                placeholder="VD: VCB, Nhom co phieu ngan hang"
+              />
+            </div>
+            <div className="mb-4">
+              <div className="mb-2 text-xs font-semibold uppercase text-slate-400">
+                Opinion Term
+              </div>
+              <input
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                value={selectedOpinionTerm}
+                onChange={(e) => setSelectedOpinionTerm(e.target.value)}
+                placeholder="Cu phap danh gia/tac dong"
+              />
             </div>
             <div className="mb-6">
               <div className="mb-2 text-xs font-semibold uppercase text-slate-400">
@@ -700,6 +843,22 @@ function App() {
                     </button>
                   );
                 })}
+              </div>
+            </div>
+            <div className="mb-6">
+              <div className="mb-2 text-xs font-semibold uppercase text-slate-400">
+                Scope
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(config.scopes || []).map((scope) => (
+                  <button
+                    key={scope}
+                    className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${selectedLabelScope === scope ? "bg-emerald-500 text-white shadow ring-2 ring-amber-400/70" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-200"}`}
+                    onClick={() => setSelectedLabelScope(scope)}
+                  >
+                    {scope}
+                  </button>
+                ))}
               </div>
             </div>
             <div className="flex justify-end gap-2">
@@ -772,9 +931,7 @@ function App() {
                 <div className="text-3xl font-bold text-indigo-600">
                   {total_paragraph}
                 </div>
-                <div className="text-sm text-slate-600">
-                  Total_paragraph Paragraphs
-                </div>
+                <div className="text-sm text-slate-600">Total Paragraphs</div>
               </div>
               <div className="rounded-lg bg-emerald-50 p-4">
                 <div className="text-3xl font-bold text-emerald-600">
@@ -784,25 +941,29 @@ function App() {
               </div>
               <div className="rounded-lg bg-amber-50 p-4">
                 <div className="text-3xl font-bold text-amber-600">
-                  {skippedCount}
+                  {noAspectCount}
                 </div>
-                <div className="text-sm text-slate-600">Skipped/No Aspect</div>
+                <div className="text-sm text-slate-600">No Aspect</div>
               </div>
             </div>
 
             {/* Charts */}
-            {statsData && (
+            {!statsData ? (
+              <div className="py-12 text-center text-slate-500">
+                Loading charts...
+              </div>
+            ) : (
               <div className="space-y-8">
-                {/* Aspect Distribution */}
-                {statsData.aspect_counts &&
-                  Object.keys(statsData.aspect_counts).length > 0 && (
+                {/* Entity Distribution */}
+                {statsData.entity_counts &&
+                  Object.keys(statsData.entity_counts).length > 0 && (
                     <div className="rounded-lg border border-slate-200 p-4">
                       <div className="mb-4 text-lg font-semibold text-slate-700">
-                        Aspect Distribution
+                        Entity Distribution
                       </div>
                       <ResponsiveContainer width="100%" height={300}>
                         <BarChart
-                          data={Object.entries(statsData.aspect_counts).map(
+                          data={Object.entries(statsData.entity_counts).map(
                             ([k, v]) => ({ name: k, count: v }),
                           )}
                         >
@@ -853,25 +1014,25 @@ function App() {
                     </div>
                   )}
 
-                {/* Aspect-Sentiment Breakdown */}
+                {/* Entity/Attribute-Sentiment Breakdown */}
                 {statsData.breakdown &&
                   Object.keys(statsData.breakdown).length > 0 && (
                     <div className="rounded-lg border border-slate-200 p-4">
                       <div className="mb-4 text-lg font-semibold text-slate-700">
-                        Aspect-Sentiment Breakdown
+                        Entity/Attribute-Sentiment Breakdown
                       </div>
                       <ResponsiveContainer width="100%" height={300}>
                         <BarChart
                           data={Object.entries(statsData.breakdown).map(
-                            ([aspect, sentiments]) => ({
-                              aspect,
+                            ([pair, sentiments]) => ({
+                              pair,
                               ...sentiments,
                             }),
                           )}
                         >
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis
-                            dataKey="aspect"
+                            dataKey="pair"
                             angle={-45}
                             textAnchor="end"
                             height={80}
