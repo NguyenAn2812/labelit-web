@@ -43,11 +43,13 @@ function App() {
   const [showLabelModal, setShowLabelModal] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showClassifyModal, setShowClassifyModal] = useState(false);
+  const [showOverviewSection, setShowOverviewSection] = useState(false);
   const [statsData, setStatsData] = useState(null);
   const [selectedScope, setSelectedScope] = useState(null);
 
   const textRef = useRef(null);
   const dismissedClassificationRef = useRef(new Set());
+  const hasLoadedOnceRef = useRef(false);
 
   const currentItem = dataset[currentIndex] || {};
   const articleMeta = currentItem.article_meta || {};
@@ -69,6 +71,10 @@ function App() {
     () => dataset.filter((item) => item.no_aspect).length,
     [dataset],
   );
+  const checkedCount = useMemo(
+    () => dataset.filter((item) => item.checked).length,
+    [dataset],
+  );
   const spanCount = useMemo(
     () =>
       dataset.reduce(
@@ -87,6 +93,8 @@ function App() {
     [dataset],
   );
   const remainingCount = total_paragraph - annotatedCount - noAspectCount;
+  const annotatorId =
+    import.meta.env.annotator_id || import.meta.env.VITE_ANNOTATOR_ID || "N/A";
 
   const availableAttributes = useMemo(() => {
     const entityMap = config.entity_attributes || {};
@@ -99,8 +107,93 @@ function App() {
     total_paragraph > 0
       ? ((annotatedCount + noAspectCount) / total_paragraph) * 100
       : 0;
+  const checkedProgress =
+    total_paragraph > 0 ? (checkedCount / total_paragraph) * 100 : 0;
+
+  const normalizeLabel = (label) => {
+    if (!label || typeof label !== "object") return null;
+
+    const start = Number(label.start ?? label.start_index);
+    const end = Number(label.end ?? label.end_index);
+
+    if (Number.isNaN(start) || Number.isNaN(end)) return null;
+
+    return {
+      ...label,
+      start,
+      end,
+      start_index: start,
+      end_index: end,
+    };
+  };
+
+  const dedupeLabels = (labels) => {
+    if (!Array.isArray(labels)) return [];
+
+    const seen = new Map();
+    labels.forEach((rawLabel, index) => {
+      const label = normalizeLabel(rawLabel);
+      if (!label) return;
+
+      const key = [
+        label.start,
+        label.end,
+        label.entity || "",
+        label.attribute || "",
+        label.sentiment || "",
+        label.scope || "",
+      ].join("__");
+
+      seen.set(key, { ...label, __order: index });
+    });
+
+    return Array.from(seen.values())
+      .sort((a, b) => a.__order - b.__order)
+      .map(({ __order, ...label }) => label);
+  };
+
+  const normalizeEntityList = (value, fallback = "NULL") => {
+    if (Array.isArray(value)) {
+      const cleaned = value
+        .map((item) => String(item).trim())
+        .filter((item) => item.length > 0);
+      return cleaned.length > 0 ? cleaned : [fallback];
+    }
+
+    const cleaned = String(value || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+
+    return cleaned.length > 0 ? cleaned : [fallback];
+  };
+
+  const normalizeDataset = (rows) => {
+    if (!Array.isArray(rows)) return [];
+
+    const seen = new Map();
+    rows.forEach((item, index) => {
+      const articleId = item?.article_id ?? "NA";
+      const pIndex = item?.paragraph_index ?? item?.sentence_idx ?? 1;
+      const key = `${articleId}__${pIndex}`;
+
+      // Keep the latest copy if duplicated keys appear.
+      seen.set(key, {
+        ...item,
+        labels: dedupeLabels(item?.labels || []),
+        __order: index,
+      });
+    });
+
+    return Array.from(seen.values())
+      .sort((a, b) => a.__order - b.__order)
+      .map(({ __order, ...item }) => item);
+  };
 
   useEffect(() => {
+    if (hasLoadedOnceRef.current) return;
+    hasLoadedOnceRef.current = true;
+
     const load = async () => {
       try {
         const configRes = await fetch("/api/config");
@@ -109,10 +202,11 @@ function App() {
 
         const dataRes = await fetch("/api/data");
         const data = await dataRes.json();
-        setDataset(data);
-        console.log(data);
+        const normalizedData = normalizeDataset(data);
+        setDataset(normalizedData);
+        console.log(normalizedData);
 
-        const first = data.findIndex(
+        const first = normalizedData.findIndex(
           (item) =>
             (!item.labels || item.labels.length === 0) && !item.no_aspect,
         );
@@ -193,17 +287,38 @@ function App() {
   };
 
   const saveCurrentItem = async (updatedItem = currentItem, nextIndex) => {
+    const resolvedAnnotatorId = annotatorId !== "N/A" ? annotatorId : null;
+    const normalizedLabels = dedupeLabels(updatedItem.labels || []).map(
+      (label) => ({
+        ...label,
+        start_index: label.start,
+        end_index: label.end,
+        trigger_entity: normalizeEntityList(label.trigger_entity, "NULL"),
+        target_entities: normalizeEntityList(label.target_entities, "NULL"),
+        annotator_id: label.annotator_id || resolvedAnnotatorId,
+      }),
+    );
+    const payload = {
+      ...updatedItem,
+      labels: normalizedLabels,
+      annotator_id: updatedItem.annotator_id || resolvedAnnotatorId,
+    };
+
     try {
       await fetch("/api/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedItem),
+        body: JSON.stringify(payload),
       });
       const dataRes = await fetch("/api/data");
       const data = await dataRes.json();
-      setDataset(data);
-      if (Number.isInteger(nextIndex) && data.length > 0) {
-        const bounded = Math.min(Math.max(nextIndex, 0), data.length - 1);
+      const normalizedData = normalizeDataset(data);
+      setDataset(normalizedData);
+      if (Number.isInteger(nextIndex) && normalizedData.length > 0) {
+        const bounded = Math.min(
+          Math.max(nextIndex, 0),
+          normalizedData.length - 1,
+        );
         setCurrentIndex(bounded);
       }
     } catch (error) {
@@ -221,22 +336,26 @@ function App() {
     )
       return;
 
-    const targetEntities = (selectedTargetEntitiesText || "NULL")
-      .split(",")
-      .map((item) => item.trim())
-      .filter((item) => item.length > 0);
+    const triggerEntities = normalizeEntityList(selectedTriggerEntity, "NULL");
+    const targetEntities = normalizeEntityList(
+      selectedTargetEntitiesText,
+      "NULL",
+    );
 
     const newLabel = {
       start: selection.start,
       end: selection.end,
+      start_index: selection.start,
+      end_index: selection.end,
       span: selection.text,
       entity: selectedEntity,
       attribute: selectedAttribute,
       sentiment: selectedSentiment,
-      trigger_entity: selectedTriggerEntity || "NULL",
-      target_entities: targetEntities.length > 0 ? targetEntities : ["NULL"],
+      trigger_entity: triggerEntities,
+      target_entities: targetEntities,
       opinion_term: selectedOpinionTerm || "",
       scope: selectedLabelScope,
+      annotator_id: annotatorId !== "N/A" ? annotatorId : null,
     };
 
     const labels = [...(currentItem.labels || [])];
@@ -393,7 +512,7 @@ function App() {
 
     const dataRes = await fetch("/api/data");
     const data = await dataRes.json();
-    setDataset(data);
+    setDataset(normalizeDataset(data));
     dismissedClassificationRef.current.delete(String(currentItem.article_id));
     setShowClassifyModal(false);
   };
@@ -430,9 +549,15 @@ function App() {
             setSelectedEntity(lbl.entity);
             setSelectedAttribute(lbl.attribute);
             setSelectedSentiment(lbl.sentiment);
-            setSelectedTriggerEntity(lbl.trigger_entity || "NULL");
+            setSelectedTriggerEntity(
+              Array.isArray(lbl.trigger_entity)
+                ? lbl.trigger_entity.join(", ") || "NULL"
+                : lbl.trigger_entity || "NULL",
+            );
             setSelectedTargetEntitiesText(
-              (lbl.target_entities || []).join(", ") || "NULL",
+              Array.isArray(lbl.target_entities)
+                ? lbl.target_entities.join(", ") || "NULL"
+                : lbl.target_entities || "NULL",
             );
             setSelectedOpinionTerm(lbl.opinion_term || text.slice(start, end));
             setSelectedLabelScope(lbl.scope || articleMeta.scope || null);
@@ -454,7 +579,6 @@ function App() {
 
     const ts = Number(timestamp);
     if (Number.isNaN(ts)) return null;
-
     // auto-detect seconds vs milliseconds
     const date = new Date(ts < 1e12 ? ts * 1000 : ts);
 
@@ -469,89 +593,129 @@ function App() {
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-t-2xl bg-gradient-to-r from-indigo-500 to-violet-500 px-6 py-5 text-white">
           <div>
             <div className="text-lg font-semibold">
-              LABELiT - ViFABSA Annotation
+              LABELiT - ViBankABSA Annotation
+            </div>
+            <div className="text-sm text-white/90">
+              Annotator: {annotatorId}
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              className="rounded-full bg-white/20 px-3 py-1 font-semibold hover:opacity-50 cursor-pointer"
-              onClick={() => setShowStatsModal(true)}
-            >
-              Statistics
-            </button>
+          <div className="flex gap-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                className="rounded-lg bg-white/20 px-3 py-1 font-semibold hover:opacity-50 cursor-pointer"
+                onClick={() => setShowOverviewSection((prev) => !prev)}
+              >
+                {showOverviewSection ? "Hide Summary" : "Show Summary"}
+              </button>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                className="rounded-lg bg-white/20 px-3 py-1 font-semibold hover:opacity-50 cursor-pointer"
+                onClick={() => setShowStatsModal(true)}
+              >
+                Statistics
+              </button>
+            </div>
           </div>
         </header>
 
         <div className="space-y-6 p-6">
-          <section className="space-y-4 rounded-xl bg-slate-50// p-4 text-sm font-semibold text-slate-600">
-            <div className="grid gap-0 md:grid-cols-5">
-              <div className="text-center">
-                <span className="text-2xl text-indigo-600">
-                  {totalArticleCount}
-                </span>
-                <div>Articles</div>
-                <br />
-                <span className="text-2xl text-indigo-600">
-                  {total_paragraph}
-                </span>
-                <div>Paragraphs</div>
-              </div>
-              <div className="text-center">
-                <span className="text-2xl text-emerald-600">{spanCount}</span>
-                <div>
-                  Annotated
-                  <br />
-                  Span
+          <section className="space-y-4 rounded-xl bg-slate-50// p-4// text-sm font-semibold text-slate-600">
+            {showOverviewSection && (
+              <>
+                <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                  <span>Annotated</span>
+                  <span>
+                    {annotatedCount + noAspectCount}/{total_paragraph} (
+                    {progress.toFixed(1)}%)
+                  </span>
                 </div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl text-emerald-600">
-                  {annotatedCount}
-                  <br />
-                  {((annotatedCount / total_paragraph) * 100).toFixed(2)}%
+                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500"
+                    style={{ width: `${progress.toFixed(1)}%` }}
+                  />
                 </div>
+                <div className="mt-5 flex items-center justify-between text-xs text-slate-500">
+                  <span>Checked by Human</span>
+                  <span>
+                    {checkedCount}/{total_paragraph} (
+                    {checkedProgress.toFixed(1)}%)
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-sky-500"
+                    style={{ width: `${checkedProgress.toFixed(1)}%` }}
+                  />
+                </div>
+                <div className="grid gap-0 md:grid-cols-5">
+                  <div className="text-center">
+                    <span className="text-2xl// text-indigo-600">
+                      {totalArticleCount}
+                    </span>
+                    <div>Articles</div>
+                    <br />
+                    <span className="text-2xl// text-indigo-600">
+                      {total_paragraph}
+                    </span>
+                    <div>Paragraphs</div>
+                  </div>
+                  <div className="text-center">
+                    <span className="text-2xl// text-emerald-600">
+                      {spanCount}
+                    </span>
+                    <div>
+                      Annotated
+                      <br />
+                      Span
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl// text-emerald-600">
+                      {annotatedCount}
+                      <br />
+                      {((annotatedCount / total_paragraph) * 100).toFixed(2)}%
+                    </div>
 
-                <div>
-                  Annotated
-                  <br />
-                  Paragraphs
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl text-amber-600">
-                  {noAspectCount}
-                  <br />
-                  {((noAspectCount / total_paragraph) * 100).toFixed(2)}%
-                </div>
+                    <div>
+                      Annotated
+                      <br />
+                      Paragraphs
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl// text-amber-600">
+                      {noAspectCount}
+                      <br />
+                      {((noAspectCount / total_paragraph) * 100).toFixed(2)}%
+                    </div>
 
-                <div>
-                  No Aspect <br />
-                  Paragraphs
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl text-rose-600">
-                  {remainingCount}
-                  <br />
-                  {(
-                    100 -
-                    ((annotatedCount + noAspectCount) / total_paragraph) * 100
-                  ).toFixed(2)}
-                  %
-                </div>
+                    <div>
+                      No Aspect <br />
+                      Paragraphs
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl// text-rose-600">
+                      {remainingCount}
+                      <br />
+                      {(
+                        100 -
+                        ((annotatedCount + noAspectCount) / total_paragraph) *
+                          100
+                      ).toFixed(2)}
+                      %
+                    </div>
 
-                <div>
-                  Remaining <br />
-                  paragraphs
+                    <div>
+                      Remaining <br />
+                      paragraphs
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500"
-                style={{ width: `${progress.toFixed(1)}%` }}
-              />
-            </div>
+              </>
+            )}
           </section>
 
           <section className="rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 px-4 py-4 text-white">
@@ -571,9 +735,6 @@ function App() {
                 {articleMeta.publish_datetime ||
                   articleMeta.publish_time ||
                   "N/A"}
-              </span>
-              <span className="rounded-full bg-white/20 px-3 py-1">
-                Scope: {articleMeta.scope || "N/A"}
               </span>
               {articleMeta.scope === "MICRO" && (
                 <span className="rounded-full bg-white/20 px-3 py-1">
@@ -655,14 +816,7 @@ function App() {
               className={`rounded-lg px-4 py-2 text-sm font-semibold text-white cursor-pointer hover:opacity-50 ${currentItem.checked ? "bg-cyan-600" : "bg-cyan-400"}`}
               onClick={toggleCheckedByHuman}
             >
-              {currentItem.checked ? "Checked by Human" : "Mark Checked"}
-            </button>
-            <button
-              className={`rounded-lg px-4 py-2 text-sm font-semibold text-white cursor-pointer hover:opacity-50  ${articleComplete ? "bg-indigo-500" : "bg-indigo-300 cursor-not-allowed"}`}
-              onClick={openClassificationModal}
-              disabled={!articleComplete}
-            >
-              Set Scope
+              {currentItem.checked ? "Unchecked" : "Checked"}
             </button>
           </section>
 
@@ -711,7 +865,7 @@ function App() {
             <ul className="space-y-2">
               {(currentItem.labels || []).map((lbl, idx) => (
                 <li
-                  key={`${lbl.start}-${lbl.end}-${idx}`}
+                  key={`${lbl.start}-${lbl.end}-${idx} h-full`}
                   className="flex items-center justify-between rounded-lg bg-white px-3 py-2 shadow"
                 >
                   <div className="text-sm flex flex-col">
@@ -719,23 +873,39 @@ function App() {
                       <span
                         className={`mr-2 rounded-full bg-slate-100 px-2 py-0.5 font-semibold ${lbl.sentiment == "NEGATIVE" ? "text-red-600" : lbl.sentiment == "POSITIVE" ? "text-green-600" : "text-yellow-600"}`}
                       >
-                        {lbl.sentiment} | {lbl.entity} | {lbl.attribute}
+                        {lbl.sentiment || "N/A"} | {lbl.entity || "N/A"} |{" "}
+                        {lbl.attribute || "N/A"}
                       </span>
                     </div>
-                    <span className="ml-2 text-slate-500">
-                      Span: {currentItem.text?.slice(lbl.start, lbl.end)}
+                    <span className="flex gap-1 ml-2 text-slate-500">
+                      <strong>Span: </strong>
+                      <p>{currentItem.text?.slice(lbl.start, lbl.end)}</p>
                     </span>
-                    <span className="ml-2 text-slate-500 text-xs//">
-                      Opinion term: {lbl.opinion_term || "N/A"}
+                    <span className="flex gap-1 ml-2 text-slate-500 text-xs//">
+                      <strong>Opinion term:</strong>
+                      <p> {lbl.opinion_term || "N/A"}</p>
                     </span>
-                    <span className="ml-2 text-slate-500 text-xs//">
-                      Trigger: {lbl.trigger_entity || "NULL"} | Targets:{" "}
-                      {(lbl.target_entities || []).join(", ") || "NULL"} |
-                      Scope: {lbl.scope || "N/A"}
+                    <span className="flex gap-1 ml-2 text-slate-500 text-xs//">
+                      <strong>Trigger:</strong>
+                      <p>
+                        {Array.isArray(lbl.trigger_entity)
+                          ? (lbl.trigger_entity || []).join(", ") || "NULL"
+                          : lbl.trigger_entity || "NULL"}
+                      </p>
+                    </span>
+                    <span className="flex gap-1 ml-2 text-slate-500 text-xs//">
+                      <strong>Target:</strong>
+                      {Array.isArray(lbl.target_entities)
+                        ? (lbl.target_entities || []).join(", ") || "NULL"
+                        : lbl.target_entities || "NULL"}
+                    </span>
+                    <span className="flex gap-1 ml-2 text-slate-500 text-xs//">
+                      <strong>Scope:</strong>
+                      <p> {lbl.scope || "N/A"}</p>
                     </span>
                   </div>
                   <button
-                    className="rounded-lg bg-rose-100 py-6 px-2 text-xs font-semibold text-rose-600 hover:opacity-50 cursor-pointer"
+                    className="rounded-lg h-auto bg-rose-100 py-6 px-2 text-xs font-semibold text-rose-600 hover:opacity-50 cursor-pointer"
                     onClick={() => removeLabel(idx)}
                   >
                     Remove
@@ -790,7 +960,7 @@ function App() {
             </div>
             <div className="mb-4">
               <div className="mb-2 text-xs font-semibold uppercase text-slate-400">
-                Trigger Entity
+                Trigger Entity (comma-separated)
               </div>
               <input
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
@@ -873,45 +1043,6 @@ function App() {
                 onClick={confirmLabel}
               >
                 Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showClassifyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-            <div className="mb-4 text-lg font-semibold text-slate-700">
-              Set Article Scope
-            </div>
-            <div className="mb-2 text-xs font-semibold uppercase text-slate-400">
-              Scope
-            </div>
-            <div className="mb-6 flex flex-wrap gap-2">
-              {(config.scopes || []).map((label) => (
-                <button
-                  key={label}
-                  className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${selectedScope === label ? "bg-emerald-500 text-white shadow ring-2 ring-amber-400/70" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-200"}`}
-                  onClick={() => setSelectedScope(label)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div className="flex justify-end gap-2">
-              <button
-                className="rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
-                onClick={closeClassificationModal}
-              >
-                Close
-              </button>
-              <button
-                className={`rounded-lg px-4 py-2 text-sm font-semibold text-white ${selectedScope ? "bg-indigo-500" : "bg-indigo-300 cursor-not-allowed"}`}
-                onClick={confirmClassification}
-                disabled={!selectedScope}
-              >
-                Save Scope
               </button>
             </div>
           </div>
