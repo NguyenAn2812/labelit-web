@@ -5,7 +5,7 @@
   line-height: 1.5;
   font-weight: 400;
   color: #213C51;
-  background-color: #EEEEEE;
+  background-color: #ffffff;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -14,7 +14,7 @@
   --color-primary: #213C51;
   --color-secondary: #6594B1;
   --color-accent: #DDAED3;
-  --color-surface: #EEEEEE;
+  --color-surface: #ffffff;
 }
 
 body {

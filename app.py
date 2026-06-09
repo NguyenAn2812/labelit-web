@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-app = FastAPI(title="Labelit ViFABSA API", version="2.0.0")
+app = FastAPI(title="LABELiT", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,26 +20,13 @@ app.add_middleware(
 
 
 class Label(BaseModel):
-    entity: str
-    attribute: str
-    sentiment: str
+    aspect: Optional[str] = None
+    attribute: Optional[str] = None
+    sentiment: Optional[str] = None
     start_index: int
     end_index: int
     span: Optional[str] = None
-    trigger_entity: List[str] = []
-    target_entities: List[str] = []
-    opinion_term: Optional[str] = None
     scope: Optional[str] = None
-    annotator_id: Optional[str] = None
-    checked: bool = False
-
-
-class ArticleMeta(BaseModel):
-    title: Optional[str] = None
-    source: Optional[str] = None
-    publisher: Optional[str] = None
-    author: Optional[str] = None
-    publish_datetime: Optional[str] = None
 
 
 class UpdateItemRequest(BaseModel):
@@ -51,6 +38,11 @@ class UpdateItemRequest(BaseModel):
     article_meta: Optional[Dict[str, Any]] = None
     paragraph_index: int = 1
     annotator_id: Optional[str] = None
+
+
+class UpdateScopeRequest(BaseModel):
+    article_id: str
+    scope: str
 
 
 class ConfigResponse(BaseModel):
@@ -73,17 +65,17 @@ class StatsResponse(BaseModel):
     breakdown: Dict[str, Dict[str, int]]
 
 
-INPUT_DATA = "data/split/split_0001.json"
-OUTPUT_DATA = "data/checked/split_0001.json"
+INPUT_PATH = "data/annotated/split_0001.json"
+OUTPUT_PATH = "data/checked/split_0001.json"
+
 SENTIMENTS = ["POSITIVE", "NEGATIVE", "NEUTRAL"]
 SCOPE_LABELS = ["MICRO", "MACRO"]
 ANNOTATORS = ["annotator_1", "annotator_2", "annotator_3"]
 
-# Official ViBankABSA ontology (v3.1.0)
 ENTITY_ATTRIBUTES = {
     "DIGITAL_BANKING": ["USABILITY", "STABILITY", "FEATURES", "SECURITY"],
     "SERVICE": ["STAFF_ATTITUDE", "SUPPORT_SPEED", "PROCEDURE"],
-    "FINANCIAL_PRODUCT": ["INTEREST_RATE", "LIQUIDITY", "LIMIT", "APPROVAL_SPEED", "EXCHANGE_RATE", "PROFITABILITY", "INSURANCE", "ASSET_QUALITY"],
+    "FINANCIAL_PRODUCT": ["INTEREST_RATE", "LIQUIDITY", "PROFITABILITY", "OTHER_PRODUCTS", "ASSET_QUALITY"],
     "FINANCIAL_FEE": ["TRANSACTION_FEE", "TRANSPARENCY"],
     "LEADERSHIP": ["REPUTATION", "STRATEGY", "INTEGRITY", "RISK_CONTROL"],
     "MACRO_REGULATION": ["POLICY_CHANGE", "MONETARY_CONTROL", "COMPLIANCE"],
@@ -177,19 +169,28 @@ def _normalize_scope(value):
     return value.strip().upper()
 
 
-def _annotation_to_ui_label(annotation):
+def _annotation_to_ui_label(annotation, text=""):
     """Convert annotation from data file to UI label format."""
     if not isinstance(annotation, dict):
         return None
 
     start_index = annotation.get("start_index")
     end_index = annotation.get("end_index")
-    entity = annotation.get("entity")
+    aspect = annotation.get("aspect")
     attribute = annotation.get("attribute")
     sentiment = _normalize_sentiment(annotation.get("sentiment"))
     scope = _normalize_scope(annotation.get("scope"))
 
-    # Keep incomplete annotations visible in UI; only coordinates are mandatory.
+    # Recover offsets if incoming schema stores unresolved offsets but has a span.
+    if start_index in (None, -1) or end_index in (None, -1):
+        span = annotation.get("span")
+        if isinstance(span, str) and span and isinstance(text, str) and text:
+            resolved_start = text.find(span)
+            if resolved_start != -1:
+                start_index = resolved_start
+                end_index = resolved_start + len(span)
+
+    # Keep incomplete annotations visible in UI; only valid coordinates are mandatory.
     if start_index is None or end_index is None:
         return None
 
@@ -199,22 +200,16 @@ def _annotation_to_ui_label(annotation):
     except (TypeError, ValueError):
         return None
 
-    trigger_entity = annotation.get("trigger_entity", [])
-    if not isinstance(trigger_entity, list):
-        trigger_entity = [trigger_entity] if trigger_entity else []
+    if start_index < 0 or end_index < 0 or end_index < start_index:
+        return None
 
     return {
         "start_index": start_index,
         "end_index": end_index,
-        "start": start_index,
-        "end": end_index,
         "span": annotation.get("span"),
-        "entity": entity,
+        "aspect": aspect,
         "attribute": attribute,
         "sentiment": sentiment,
-        "trigger_entity": trigger_entity,
-        "target_entities": annotation.get("target_entities", []) if isinstance(annotation.get("target_entities"), list) else [],
-        "opinion_term": annotation.get("opinion_term"),
         "scope": scope,
     }
 
@@ -228,7 +223,7 @@ def _ui_label_to_annotation(label, text=""):
 
     start_index = label.get("start_index")
     end_index = label.get("end_index")
-    entity = label.get("entity")
+    aspect = label.get("aspect")
     attribute = label.get("attribute")
     sentiment = _normalize_sentiment(label.get("sentiment"))
     scope = _normalize_scope(label.get("scope"))
@@ -248,17 +243,10 @@ def _ui_label_to_annotation(label, text=""):
     else:
         span = label.get("span") or ""
 
-    trigger_entity = label.get("trigger_entity", [])
-    if not isinstance(trigger_entity, list):
-        trigger_entity = [trigger_entity] if trigger_entity else []
-
     return {
         "span": span,
-        "trigger_entity": trigger_entity,
-        "target_entities": label.get("target_entities") if isinstance(label.get("target_entities"), list) else [],
-        "entity": entity,
+        "aspect": aspect,
         "attribute": attribute,
-        "opinion_term": label.get("opinion_term") or "",
         "sentiment": sentiment or label.get("sentiment"),
         "scope": scope,
         "start_index": start_index,
@@ -272,25 +260,25 @@ def _validate_ui_labels(labels, text):
         text = ""
 
     for index, label in enumerate(labels):
-        entity = (label.get("entity") or "").strip()
+        aspect = (label.get("aspect") or "").strip()
         attribute = (label.get("attribute") or "").strip()
         sentiment = _normalize_sentiment(label.get("sentiment"))
         scope = _normalize_scope(label.get("scope"))
 
         # Incomplete legacy labels are allowed so annotators can still see/remove them.
-        has_complete_taxonomy = bool(entity and attribute and sentiment)
+        has_complete_taxonomy = bool(aspect and attribute and sentiment)
 
         if has_complete_taxonomy:
-            if entity not in ENTITY_ATTRIBUTES:
+            if aspect not in ENTITY_ATTRIBUTES:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Label {index}: entity '{entity}' is not in official ontology",
+                    detail=f"Label {index}: aspect '{aspect}' is not in official ontology",
                 )
 
-            if attribute not in ENTITY_ATTRIBUTES[entity]:
+            if attribute not in ENTITY_ATTRIBUTES[aspect]:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Label {index}: attribute '{attribute}' is invalid for entity '{entity}'",
+                    detail=f"Label {index}: attribute '{attribute}' is invalid for aspect '{aspect}'",
                 )
 
             if sentiment not in SENTIMENTS:
@@ -316,11 +304,6 @@ def _validate_ui_labels(labels, text):
                 status_code=400,
                 detail=f"Label {index}: invalid span start_index={start_index}, end_index={end_index} for text length={len(text)}",
             )
-
-        annotator_id = label.get("annotator_id")
-        if annotator_id and annotator_id not in ANNOTATORS:
-            raise HTTPException(status_code=400, detail=f"Label {index}: annotator_id must be one of {ANNOTATORS}")
-
 
 def _normalize_labels(labels):
     """Normalize labels to dict format."""
@@ -348,9 +331,9 @@ def _index_items_by_article_and_paragraph(data):
 
 def load_data():
     """Load data from output file if exists, otherwise from input file."""
-    source_data = _load_json(OUTPUT_DATA)
+    source_data = _load_json(OUTPUT_PATH)
     if source_data is None:
-        source_data = _load_json(INPUT_DATA)
+        source_data = _load_json(INPUT_PATH)
     if source_data is None:
         return []
 
@@ -359,17 +342,41 @@ def load_data():
     for article in _extract_articles(source_data):
         article_id = _get_article_id(article)
         article_meta = _build_article_meta(article)
+        if article.get("scope"):
+            article_meta["scope"] = _normalize_scope(article.get("scope"))
 
         paragraph_annotations = article.get("paragraph_annotations", [])
         if not isinstance(paragraph_annotations, list):
             paragraph_annotations = []
 
+        paragraphs = article.get("paragraphs", [])
+        if not isinstance(paragraphs, list):
+            paragraphs = []
+
+        if not paragraph_annotations and paragraphs:
+            paragraph_annotations = [
+                {
+                    "paragraph_index": idx,
+                    "paragraph": text,
+                    "annotations": [],
+                }
+                for idx, text in enumerate(paragraphs, start=1)
+            ]
+
         for pa_item in paragraph_annotations:
             if not isinstance(pa_item, dict):
                 continue
 
-            paragraph_index = pa_item.get("paragraph_index", 1)
+            try:
+                paragraph_index = int(pa_item.get("paragraph_index", 1))
+            except (TypeError, ValueError):
+                paragraph_index = 1
+
             text = pa_item.get("paragraph") or pa_item.get("text") or ""
+            if (not text) and 1 <= paragraph_index <= len(paragraphs):
+                para_val = paragraphs[paragraph_index - 1]
+                if isinstance(para_val, str):
+                    text = para_val
 
             annotations = pa_item.get("annotations", [])
             if not isinstance(annotations, list):
@@ -377,12 +384,12 @@ def load_data():
 
             labels = []
             for annotation in annotations:
-                converted = _annotation_to_ui_label(annotation)
+                converted = _annotation_to_ui_label(annotation, text)
                 if converted:
                     labels.append(converted)
 
-            # Set no_aspect: true if no annotations, false if there are annotations
-            no_aspect = len(annotations) == 0
+            # New schema does not imply no_aspect from empty annotations.
+            no_aspect = bool(pa_item.get("no_aspect", False))
 
             data.append(
                 {
@@ -404,13 +411,13 @@ def load_data():
 
 def save_data(data):
     """Save data to output file."""
-    output_dir = os.path.dirname(OUTPUT_DATA)
+    output_dir = os.path.dirname(OUTPUT_PATH)
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    base_data = _load_json(OUTPUT_DATA)
+    base_data = _load_json(OUTPUT_PATH)
     if base_data is None:
-        base_data = _load_json(INPUT_DATA)
+        base_data = _load_json(INPUT_PATH)
     if base_data is None:
         base_data = {"total": 0, "articles": []}
 
@@ -427,14 +434,26 @@ def save_data(data):
         if not isinstance(paragraph_annotations, list):
             paragraph_annotations = []
 
+        paragraphs = article_copy.get("paragraphs", [])
+        if not isinstance(paragraphs, list):
+            paragraphs = []
+
         new_paragraph_annotations = []
 
         for pa_item in paragraph_annotations:
             if not isinstance(pa_item, dict):
                 continue
 
-            paragraph_index = pa_item.get("paragraph_index", 1)
+            try:
+                paragraph_index = int(pa_item.get("paragraph_index", 1))
+            except (TypeError, ValueError):
+                paragraph_index = 1
+
             text = pa_item.get("paragraph") or pa_item.get("text") or ""
+            if (not text) and 1 <= paragraph_index <= len(paragraphs):
+                para_val = paragraphs[paragraph_index - 1]
+                if isinstance(para_val, str):
+                    text = para_val
 
             item = items_for_article.get(paragraph_index)
 
@@ -460,6 +479,12 @@ def save_data(data):
                 checked = bool(pa_item.get("checked", False))
                 no_aspect = bool(pa_item.get("no_aspect", False))
 
+            # Keep article-level paragraph list synchronized with edited paragraph text.
+            if paragraph_index > 0:
+                while len(paragraphs) < paragraph_index:
+                    paragraphs.append("")
+                paragraphs[paragraph_index - 1] = text
+
             new_paragraph_annotations.append(
                 {
                     "paragraph_index": paragraph_index,
@@ -472,6 +497,8 @@ def save_data(data):
             )
 
         article_copy["paragraph_annotations"] = new_paragraph_annotations
+        if paragraphs:
+            article_copy["paragraphs"] = paragraphs
         new_articles.append(article_copy)
 
     existing_article_ids = {str(_get_article_id(article)) for article in new_articles}
@@ -492,6 +519,7 @@ def save_data(data):
                 article[key] = val
 
         article["paragraph_annotations"] = []
+        article["paragraphs"] = []
 
         for paragraph_index in ordered_indexes:
             item = items_for_article[paragraph_index]
@@ -513,6 +541,7 @@ def save_data(data):
                     "annotator_id": item.get("annotator_id"),
                 }
             )
+            article["paragraphs"].append(text)
 
         new_articles.append(article)
 
@@ -522,7 +551,7 @@ def save_data(data):
         "last_annotated_at": datetime.now().isoformat(),
     }
 
-    with open(OUTPUT_DATA, "w", encoding="utf-8") as f:
+    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         json.dump(output_payload, f, ensure_ascii=False, indent=2)
 
 
@@ -563,8 +592,7 @@ async def update_item(request: UpdateItemRequest):
             item["text"] = request.text
             item["labels"] = labels_payload
             item["checked"] = request.checked
-            # Set no_aspect based on whether there are any labels
-            item["no_aspect"] = len(labels_payload) == 0
+            item["no_aspect"] = bool(request.no_aspect)
             item["paragraph_index"] = request.paragraph_index
             item["annotator_id"] = request.annotator_id
             
@@ -582,6 +610,32 @@ async def update_item(request: UpdateItemRequest):
 
     if not found:
         raise HTTPException(status_code=404, detail="ID not found")
+
+    save_data(all_data)
+    return {"status": "success"}
+
+
+@app.post("/api/update-scope")
+async def update_scope(request: UpdateScopeRequest):
+    normalized_scope = _normalize_scope(request.scope)
+    if normalized_scope not in SCOPE_LABELS:
+        raise HTTPException(status_code=400, detail=f"scope must be one of {SCOPE_LABELS}")
+
+    all_data = load_data()
+    target_article_id = str(request.article_id).strip()
+    has_matching_article = False
+
+    for item in all_data:
+        if str(item.get("article_id")) != target_article_id:
+            continue
+        item["article_meta"] = {
+            **(item.get("article_meta") or {}),
+            "scope": normalized_scope,
+        }
+        has_matching_article = True
+
+    if not has_matching_article:
+        raise HTTPException(status_code=404, detail="article_id not found")
 
     save_data(all_data)
     return {"status": "success"}
@@ -629,15 +683,15 @@ async def get_stats():
         labels = item.get("labels", [])
         has_real = False
         for label in labels:
-            entity = label.get("entity") if isinstance(label, dict) else ""
+            aspect = label.get("aspect") if isinstance(label, dict) else ""
             attribute = label.get("attribute") if isinstance(label, dict) else ""
             sentiment = _normalize_sentiment(label.get("sentiment")) if isinstance(label, dict) else ""
-            if not entity or not attribute or sentiment not in SENTIMENTS:
+            if not aspect or not attribute or sentiment not in SENTIMENTS:
                 continue
 
             has_real = True
-            pair_key = f"{entity}::{attribute}"
-            entity_counts[entity] += 1
+            pair_key = f"{aspect}::{attribute}"
+            entity_counts[aspect] += 1
             attribute_counts[attribute] += 1
             sentiment_counts[sentiment] += 1
             pair_counts[pair_key] += 1
@@ -662,7 +716,7 @@ async def get_stats():
 if __name__ == "__main__":
     import uvicorn
 
-    if not os.path.exists(INPUT_DATA) and not os.path.exists(OUTPUT_DATA):
-        print(f"Canh bao: Khong tim thay file {INPUT_DATA}")
+    if not os.path.exists(INPUT_PATH) and not os.path.exists(OUTPUT_PATH):
+        print(f"Canh bao: Khong tim thay file {INPUT_PATH}")
 
     uvicorn.run(app, host="127.0.0.1", port=5000)
