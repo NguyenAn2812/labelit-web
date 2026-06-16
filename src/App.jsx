@@ -1015,7 +1015,7 @@ function App() {
             </p>
           )}
 
-          <div className="mt-3 grid gap-3">
+          <div className="mt-6 grid gap-3">
             {filteredArticles.map((art, idx) => {
               const pctDone =
                 art.total_paragraphs > 0
@@ -1030,14 +1030,10 @@ function App() {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="shrink-0 rounded bg-indigo-100 px-2 py-0.5 text-xs font-bold text-indigo-700">
-                          #{idx + 1}
-                        </span>
-                        <h3 className="font-bold text-slate-800 truncate">
-                          {art.title || "(no title)"}
-                        </h3>
-                      </div>
+                      <h3 className="font-bold text-slate-800 truncate">
+                        <span className="inline-flex items-center justify-center rounded bg-indigo-100 px-2 py-0.5 mr-1.5 text-xs font-bold text-indigo-700 align-middle">#{idx + 1}</span>
+                        {art.title || "(no title)"}
+                      </h3>
                       <p className="text-xs text-slate-500 mt-1">
                         {art.publisher || "N/A"} · {art.author || "N/A"}
                       </p>
@@ -1058,9 +1054,9 @@ function App() {
                     />
                   </div>
                   <div className="mt-2 flex gap-4 text-xs">
-                    <span className="text-emerald-600 font-medium">✓ {art.completed_paragraphs || 0} annotated</span>
-                    <span className="text-amber-600 font-medium">⊘ {art.skipped_paragraphs || 0} no aspect</span>
-                    <span className="text-slate-400 font-medium">{Math.max(0, leftCount)} left</span>
+                    <span className="text-emerald-600 font-semibold">✓ {art.completed_paragraphs || 0} annotated</span>
+                    <span className="text-amber-600 font-semibold">⊘ {art.skipped_paragraphs || 0} no aspect</span>
+                    <span className="text-slate-400 font-semibold">{Math.max(0, leftCount)} left</span>
                   </div>
                 </button>
               );
