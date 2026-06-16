@@ -804,7 +804,7 @@ function App() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-violet-500">
         <header className="text-white py-4">
-          <div className="mx-auto max-w-7xl px-4 flex items-center justify-between">
+          <div className="mx-auto max-w-[1200px] px-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold">LABELiT</h1>
           <div className="flex items-center gap-3">
             {profile?.can_edit && (
@@ -842,7 +842,7 @@ function App() {
 
         {/* import progress bar */}
         {importing && importProgress.total > 0 && (
-          <div className="mx-auto max-w-7xl px-4 mb-4">
+          <div className="mx-auto max-w-[1200px] px-4 mb-4">
             <div className="rounded-xl bg-white/10 p-4 text-white">
               <div className="flex justify-between text-sm mb-2">
                 <span>Importing…</span>
@@ -862,7 +862,7 @@ function App() {
           </div>
         )}
 
-        <div className="mx-auto max-w-7xl px-4 pb-8">
+        <div className="mx-auto max-w-[1200px] px-4 pb-8">
           {loadingDatasets ? (
             <div className="mt-20 flex justify-center text-white/70">
               <p className="text-lg animate-pulse">Loading datasets…</p>
@@ -951,7 +951,7 @@ function App() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-violet-500">
         <header className="text-white py-4">
-          <div className="mx-auto max-w-7xl px-4 flex items-center justify-between">
+          <div className="mx-auto max-w-[1200px] px-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={goBack}
@@ -978,7 +978,7 @@ function App() {
             )}
           </div>
         </div></header>
-        <div className="mx-auto max-w-7xl px-4 pb-8">
+        <div className="mx-auto max-w-[1200px] px-4 pb-8">
           {loadingArticles ? (
             <div className="mt-20 flex justify-center text-white/70">
               <p className="text-lg animate-pulse">Loading articles…</p>
@@ -1099,7 +1099,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-violet-500">
       <header className="text-white py-3">
-        <div className="mx-auto max-w-7xl px-4 flex items-center justify-between">
+        <div className="mx-auto max-w-[1200px] px-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
             onClick={goBack}
@@ -1133,7 +1133,7 @@ function App() {
       <>
       {/* article meta */}
       {selectedArticleMeta && (
-        <div className="mx-auto max-w-7xl px-4 mb-4">
+        <div className="mx-auto max-w-[1200px] px-4 mb-4">
           <div className="rounded-xl bg-white/10 px-5 py-3 text-white">
             <div className="text-sm font-semibold">
               {selectedArticleMeta.publisher || "N/A"} ·{" "}
@@ -1155,7 +1155,7 @@ function App() {
       )}
 
       {/* paragraph navigation */}
-      <div className="mx-auto max-w-7xl px-4 mb-3">
+      <div className="mx-auto max-w-[1200px] px-4 mb-3">
         <div className="flex items-center justify-between rounded-xl bg-white/10 px-4 py-2 text-white text-sm">
           <div className="flex items-center gap-2">
             <button
@@ -1198,7 +1198,7 @@ function App() {
       </div>
 
       {/* paragraph dots */}
-      <div className="mx-auto max-w-7xl px-4 mb-3 flex gap-1.5 justify-center flex-wrap">
+      <div className="mx-auto max-w-[1200px] px-4 mb-3 flex gap-1.5 justify-center flex-wrap">
         {paragraphs.map((p, i) => (
           <button
             key={p.id}
@@ -1218,7 +1218,7 @@ function App() {
       </div>
 
       {/* progress bar */}
-      <div className="mx-auto max-w-7xl px-4 mb-3">
+      <div className="mx-auto max-w-[1200px] px-4 mb-3">
         <div className="rounded-xl bg-white/10 px-4 py-2 text-white text-sm flex items-center justify-between">
           <span className="font-semibold">
             Article {currentArticleIndex + 1}/{articles.length}
@@ -1238,7 +1238,7 @@ function App() {
       </div>
 
       {/* search bar */}
-      <div className="mx-auto max-w-7xl px-4 mb-3">
+      <div className="mx-auto max-w-[1200px] px-4 mb-3">
         <div className="flex gap-2">
           <input
             className="flex-1 rounded-lg bg-white/10 px-3 py-1.5 text-sm text-white placeholder-white/40 border border-white/20 outline-none focus:border-white/50"
@@ -1257,7 +1257,7 @@ function App() {
       </div>
 
       {/* text area */}
-      <div className="mx-auto max-w-7xl px-4 mb-3">
+      <div className="mx-auto max-w-[1200px] px-4 mb-3">
         <div className="rounded-xl bg-white p-5 shadow-lg">
           {isEditingText ? (
             <textarea
@@ -1278,7 +1278,7 @@ function App() {
       </div>
 
       {/* action buttons */}
-      <div className="mx-auto max-w-7xl px-4 mb-3 flex flex-wrap gap-2">
+      <div className="mx-auto max-w-[1200px] px-4 mb-3 flex flex-wrap gap-2">
         <button
           onClick={() => {
             if (isEditingText) setIsEditingText(false);
@@ -1337,7 +1337,7 @@ function App() {
 
       {/* audit log panel */}
       {showAuditLog && (
-        <div className="mx-auto max-w-7xl px-4 mb-4">
+        <div className="mx-auto max-w-[1200px] px-4 mb-4">
           <div className="rounded-xl bg-white/10 p-4 text-white text-sm">
             <h3 className="font-semibold mb-2">Annotation Log</h3>
             {auditLogs.length === 0 && (
@@ -1386,7 +1386,7 @@ function App() {
       )}
 
       {/* labels list */}
-      <div className="mx-auto max-w-7xl px-4 pb-8">
+      <div className="mx-auto max-w-[1200px] px-4 pb-8">
         <div className="rounded-xl bg-white p-5 shadow-lg">
           <h2 className="mb-3 text-base font-semibold text-slate-700">
             Labels ({currentAnnotations.length})
