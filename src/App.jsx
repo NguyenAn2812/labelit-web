@@ -1018,7 +1018,7 @@ function App() {
             </p>
           )}
 
-          <div className="mt-6 grid gap-3">
+          <div className="mt-6 grid grid-cols-1 gap-4">
             {filteredArticles.map((art, idx) => {
               const pctDone =
                 art.total_paragraphs > 0
@@ -1026,10 +1026,10 @@ function App() {
                   : "0.0";
               const leftCount = (art.total_paragraphs || 0) - (art.completed_paragraphs || 0) - (art.skipped_paragraphs || 0);
               return (
-                <button
+                <div
                   key={art.article_id}
                   onClick={() => goToArticle(art)}
-                  className="w-full rounded-xl bg-white p-4 text-left shadow-lg hover:shadow-xl transition cursor-pointer"
+                  className="rounded-xl bg-white p-5 shadow-lg hover:shadow-xl transition cursor-pointer"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
@@ -1050,9 +1050,9 @@ function App() {
                       </div>
                     </div>
                   </div>
-                  <div className="mt-2 h-1.5 w-full rounded-full bg-slate-100">
+                  <div className="mt-3 h-2 w-full rounded-full bg-slate-100">
                     <div
-                      className="h-1.5 rounded-full bg-emerald-500 transition-all"
+                      className="h-2 rounded-full bg-emerald-500 transition-all"
                       style={{ width: `${Math.min(pctDone, 100)}%` }}
                     />
                   </div>
@@ -1061,7 +1061,7 @@ function App() {
                     <span className="text-amber-600 font-semibold">⊘ {art.skipped_paragraphs || 0} no aspect</span>
                     <span className="text-slate-400 font-semibold">{Math.max(0, leftCount)} left</span>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
