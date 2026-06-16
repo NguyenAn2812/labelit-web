@@ -44,6 +44,8 @@ function App() {
   const [paragraphs, setParagraphs] = useState([]);
   const [annotations, setAnnotations] = useState({});
   const [currentParaIdx, setCurrentParaIdx] = useState(0);
+  const [loadingDatasets, setLoadingDatasets] = useState(false);
+  const [loadingArticles, setLoadingArticles] = useState(false);
 
   const [selection, setSelection] = useState(null);
   const [selectedAspect, setSelectedAspect] = useState(null);
@@ -110,14 +112,17 @@ function App() {
 
   useEffect(() => {
     if (screen !== "dashboard" || !config) return;
-    getDatasets().then(setDatasets).catch(console.error);
+    setLoadingDatasets(true);
+    getDatasets().then(setDatasets).catch(console.error).finally(() => setLoadingDatasets(false));
   }, [screen, config]);
 
   useEffect(() => {
     if (screen !== "dataset-detail" || !selectedDatasetId) return;
+    setLoadingArticles(true);
     getArticlesByDataset(selectedDatasetId)
       .then(setArticles)
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setLoadingArticles(false));
   }, [screen, selectedDatasetId]);
 
 
@@ -857,7 +862,11 @@ function App() {
         )}
 
         <div className="mx-auto max-w-7xl px-4 pb-8">
-          {datasets.length === 0 && !importing && (
+          {loadingDatasets ? (
+            <div className="mt-20 flex justify-center text-white/70">
+              <p className="text-lg animate-pulse">Loading datasets…</p>
+            </div>
+          ) : datasets.length === 0 && !importing ? (
             <div className="mt-20 text-center text-white/70">
               <p className="text-lg">No datasets yet.</p>
               {profile?.can_edit && (
@@ -866,7 +875,7 @@ function App() {
                 </p>
               )}
             </div>
-          )}
+          ) : null}
           <div className="mt-6 grid gap-4">
             {datasets.map((ds) => (
               <div
@@ -956,11 +965,15 @@ function App() {
           )}
         </div></header>
         <div className="mx-auto max-w-7xl px-4 pb-8">
-          {articles.length === 0 && (
+          {loadingArticles ? (
+            <div className="mt-20 flex justify-center text-white/70">
+              <p className="text-lg animate-pulse">Loading articles…</p>
+            </div>
+          ) : articles.length === 0 ? (
             <div className="mt-20 text-center text-white/70">
               <p className="text-lg">No articles in this dataset.</p>
             </div>
-          )}
+          ) : null}
           <div className="mt-6 grid gap-3">
             {articles.map((art) => {
               const pctDone =
