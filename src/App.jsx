@@ -14,6 +14,7 @@ import {
   getAnnotationsByParagraph,
   createAnnotation,
   softDeleteAnnotation,
+  restoreAnnotation,
   updateAnnotation,
   updateParagraphChecked,
   updateParagraphNoAspect,
@@ -483,6 +484,34 @@ function App() {
       alert("Audit log error: " + err.message);
     } finally {
       setLoadingAuditLog(false);
+    }
+  };
+
+  const handleRestoreAnnotation = async (annotationId) => {
+    try {
+      await restoreAnnotation(annotationId);
+      const [anns, logs] = await Promise.all([
+        getAnnotationsByParagraph(currentParagraph.id),
+        getAuditLogsByParagraph(currentParagraph.id),
+      ]);
+      setAnnotations((prev) => ({ ...prev, [currentParagraph.id]: anns }));
+      setAuditLogs(logs);
+    } catch (err) {
+      alert("Restore error: " + err.message);
+    }
+  };
+
+  const handleRevertAnnotation = async (annotationId, oldData) => {
+    try {
+      await updateAnnotation(annotationId, oldData);
+      const [anns, logs] = await Promise.all([
+        getAnnotationsByParagraph(currentParagraph.id),
+        getAuditLogsByParagraph(currentParagraph.id),
+      ]);
+      setAnnotations((prev) => ({ ...prev, [currentParagraph.id]: anns }));
+      setAuditLogs(logs);
+    } catch (err) {
+      alert("Revert error: " + err.message);
     }
   };
 
@@ -1449,6 +1478,22 @@ function App() {
                   <span className="shrink-0 text-xs text-white/40">
                     {new Date(log.created_at).toLocaleTimeString()}
                   </span>
+                  {profile?.can_edit && log.action === "delete" && log.annotation_id && (
+                    <button
+                      onClick={() => handleRestoreAnnotation(log.annotation_id)}
+                      className="shrink-0 rounded bg-emerald-500/60 px-2 py-0.5 text-xs font-semibold text-white hover:bg-emerald-500 transition cursor-pointer"
+                    >
+                      Restore
+                    </button>
+                  )}
+                  {profile?.can_edit && log.action === "update" && log.annotation_id && log.old_data && (
+                    <button
+                      onClick={() => handleRevertAnnotation(log.annotation_id, log.old_data)}
+                      className="shrink-0 rounded bg-cyan-500/60 px-2 py-0.5 text-xs font-semibold text-white hover:bg-cyan-500 transition cursor-pointer"
+                    >
+                      Revert
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
