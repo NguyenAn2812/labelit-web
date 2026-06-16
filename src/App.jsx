@@ -1049,7 +1049,7 @@ function App() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-slate-800 truncate">
-                        <span className="inline-flex items-center justify-center rounded bg-indigo-100 px-2 py-0.5 mr-1.5 text-xs font-bold text-indigo-700 align-middle">#{idx + 1}</span>
+                        <span className="inline-flex items-center justify-center rounded bg-indigo-100 px-2 py-0.5 mr-1.5 text-xs font-bold text-indigo-700 align-middle">#{idx + 1 + (articlePage - 1) * 50}</span>
                         {art.title || "(no title)"}
                       </h3>
                       <p className="text-xs text-slate-500 mt-1">
