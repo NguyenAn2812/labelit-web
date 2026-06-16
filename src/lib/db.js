@@ -40,6 +40,7 @@ export async function getDatasets() {
     .from('dataset_progress_view')
     .select('*')
     .order('created_at', { ascending: false })
+    .limit(100000)
 
   if (error) throw error
   return data
@@ -100,6 +101,7 @@ export async function getArticlesByDataset(datasetId) {
     .select('*')
     .eq('dataset_id', datasetId)
     .order('article_order')
+    .limit(100000)
 
   if (error) throw error
   return data

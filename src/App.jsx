@@ -67,6 +67,7 @@ function App() {
 
   /* search */
   const [searchQuery, setSearchQuery] = useState("");
+  const [datasetSearchQuery, setDatasetSearchQuery] = useState("");
 
   /* audit log */
   const [showAuditLog, setShowAuditLog] = useState(false);
@@ -942,6 +943,15 @@ function App() {
      ═════════════════════════════════════════ */
 
   if (screen === "dataset-detail") {
+    const filteredArticles = articles.filter(a =>
+      !datasetSearchQuery.trim()
+      || a.title?.toLowerCase().includes(datasetSearchQuery.toLowerCase())
+      || a.article_id?.toLowerCase().includes(datasetSearchQuery.toLowerCase())
+    );
+    const totAnn = articles.reduce((s, a) => s + (a.completed_paragraphs || 0), 0);
+    const totSkip = articles.reduce((s, a) => s + (a.skipped_paragraphs || 0), 0);
+    const totPen = articles.reduce((s, a) => s + (a.pending_paragraphs || 0), 0);
+    const totAll = articles.reduce((s, a) => s + (a.total_paragraphs || 0), 0);
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-violet-500">
         <header className="text-white py-4">
@@ -955,14 +965,22 @@ function App() {
             </button>
             <h1 className="text-xl font-bold">{selectedDatasetName}</h1>
           </div>
-          {profile?.can_edit && (
+          <div className="flex items-center gap-2">
             <button
-              onClick={handleExportJson}
-              className="rounded-lg bg-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/30 transition cursor-pointer"
+              onClick={() => setShowGuide(true)}
+              className="rounded-lg bg-white/10 px-3 py-1 text-sm font-semibold hover:bg-white/20 transition cursor-pointer"
             >
-              Export JSON
+              Guide
             </button>
-          )}
+            {profile?.can_edit && (
+              <button
+                onClick={handleExportJson}
+                className="rounded-lg bg-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/30 transition cursor-pointer"
+              >
+                Export JSON
+              </button>
+            )}
+          </div>
         </div></header>
         <div className="mx-auto max-w-7xl px-4 pb-8">
           {loadingArticles ? (
@@ -973,16 +991,52 @@ function App() {
             <div className="mt-20 text-center text-white/70">
               <p className="text-lg">No articles in this dataset.</p>
             </div>
-          ) : null}
-          <div className="mt-6 grid gap-3">
-            {articles.map((art) => {
+          ) : (
+          <>
+          {/* stats summary bar */}
+          <div className="mt-4 rounded-xl bg-white/10 px-4 py-2 text-white text-sm flex items-center justify-between">
+            <span className="font-semibold">{articles.length} articles</span>
+            <div className="flex gap-3 text-xs">
+              <span className="text-emerald-300">✓ {totAnn} annotated</span>
+              <span className="text-amber-300">⊘ {totSkip} no aspect</span>
+              <span className="text-white/50">{totPen} left · {totAll} total paras</span>
+            </div>
+          </div>
+
+          {/* search bar */}
+          <div className="mt-3 mb-4">
+            <div className="flex gap-2">
+              <input
+                className="flex-1 rounded-lg bg-white/10 px-3 py-1.5 text-sm text-white placeholder-white/40 border border-white/20 outline-none focus:border-white/50"
+                placeholder="Search articles by title or ID…"
+                value={datasetSearchQuery}
+                onChange={(e) => setDatasetSearchQuery(e.target.value)}
+              />
+              {datasetSearchQuery && (
+                <button
+                  onClick={() => setDatasetSearchQuery("")}
+                  className="rounded-lg bg-white/20 px-3 py-1 text-sm font-semibold text-white hover:bg-white/30 transition cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* match count */}
+          {datasetSearchQuery && (
+            <p className="mb-2 text-xs text-white/50">
+              {filteredArticles.length} / {articles.length} articles match
+            </p>
+          )}
+
+          <div className="mt-2 grid gap-3">
+            {filteredArticles.map((art, idx) => {
               const pctDone =
                 art.total_paragraphs > 0
-                  ? (
-                      (art.completed_paragraphs / art.total_paragraphs) *
-                      100
-                    ).toFixed(1)
+                  ? ((art.completed_paragraphs / art.total_paragraphs) * 100).toFixed(1)
                   : "0.0";
+              const leftCount = (art.total_paragraphs || 0) - (art.completed_paragraphs || 0) - (art.skipped_paragraphs || 0);
               return (
                 <button
                   key={art.article_id}
@@ -991,9 +1045,14 @@ function App() {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-slate-800 truncate">
-                        {art.title || "(no title)"}
-                      </h3>
+                      <div className="flex items-center gap-2">
+                        <span className="shrink-0 rounded bg-indigo-100 px-2 py-0.5 text-xs font-bold text-indigo-700">
+                          #{idx + 1}
+                        </span>
+                        <h3 className="font-bold text-slate-800 truncate">
+                          {art.title || "(no title)"}
+                        </h3>
+                      </div>
                       <p className="text-xs text-slate-500 mt-1">
                         {art.publisher || "N/A"} · {art.author || "N/A"}
                       </p>
@@ -1013,10 +1072,16 @@ function App() {
                       style={{ width: `${Math.min(pctDone, 100)}%` }}
                     />
                   </div>
+                  <div className="mt-2 flex gap-3 text-xs text-slate-500">
+                    <span className="text-emerald-600 font-medium">✓ {art.completed_paragraphs || 0} done</span>
+                    <span className="text-amber-600 font-medium">⊘ {art.skipped_paragraphs || 0} skipped</span>
+                    <span className="text-slate-400">{Math.max(0, leftCount)} left</span>
+                  </div>
                 </button>
               );
             })}
           </div>
+          </>)}
         </div>
         {renderGuideModal()}
       </div>
