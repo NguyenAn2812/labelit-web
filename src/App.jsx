@@ -70,6 +70,9 @@ function App() {
   const [datasetSearchQuery, setDatasetSearchQuery] = useState("");
   const [articlePage, setArticlePage] = useState(1);
   const [articleTotal, setArticleTotal] = useState(0);
+  const [filterStatus, setFilterStatus] = useState(null);
+
+  useEffect(() => { setArticlePage(1); }, [datasetSearchQuery, filterStatus]);
 
   /* audit log */
   const [showAuditLog, setShowAuditLog] = useState(false);
@@ -952,11 +955,15 @@ function App() {
      ═════════════════════════════════════════ */
 
   if (screen === "dataset-detail") {
-    const filteredArticles = articles.filter(a =>
-      !datasetSearchQuery.trim()
-      || a.title?.toLowerCase().includes(datasetSearchQuery.toLowerCase())
-      || a.article_id?.toLowerCase().includes(datasetSearchQuery.toLowerCase())
-    );
+    const filteredArticles = articles.filter(a => {
+      const matchesSearch = !datasetSearchQuery.trim()
+        || a.title?.toLowerCase().includes(datasetSearchQuery.toLowerCase())
+        || a.article_id?.toLowerCase().includes(datasetSearchQuery.toLowerCase());
+      if (!matchesSearch) return false;
+      if (!filterStatus) return true;
+      const done = (a.completed_paragraphs || 0) + (a.skipped_paragraphs || 0) >= (a.total_paragraphs || 0);
+      return filterStatus === "done" ? done : !done;
+    });
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-violet-500">
         <div className="app-container">
@@ -1009,6 +1016,28 @@ function App() {
           </div>
           {/* search bar */}
           <div className="mt-4 mb-1">
+            <div className="flex gap-2 mb-2">
+              <button
+                onClick={() => setFilterStatus(f => f === "done" ? null : "done")}
+                className={`rounded-lg px-3 py-1 text-sm font-semibold transition cursor-pointer ${
+                  filterStatus === "done"
+                    ? "bg-emerald-500 text-white"
+                    : "bg-white/10 text-white/70 hover:bg-white/20"
+                }`}
+              >
+                ✓ Done
+              </button>
+              <button
+                onClick={() => setFilterStatus(f => f === "left" ? null : "left")}
+                className={`rounded-lg px-3 py-1 text-sm font-semibold transition cursor-pointer ${
+                  filterStatus === "left"
+                    ? "bg-amber-500 text-white"
+                    : "bg-white/10 text-white/70 hover:bg-white/20"
+                }`}
+              >
+                ⊘ Left
+              </button>
+            </div>
             <div className="flex gap-2">
               <input
                 className="flex-1 rounded-lg bg-white/10 px-3 py-1.5 text-sm text-white placeholder-white/40 border border-white/20 outline-none focus:border-white/50"
