@@ -803,7 +803,7 @@ function App() {
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-violet-500">
-        <div className="mx-auto max-w-[1200px] px-4">
+        <div className="app-container">
         <header className="text-white py-4">
           <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">LABELiT</h1>
@@ -952,7 +952,7 @@ function App() {
     );
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-violet-500">
-        <div className="mx-auto max-w-[1200px] px-4">
+        <div className="app-container">
         <header className="text-white py-4">
           <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -1102,7 +1102,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-violet-500">
-      <div className="mx-auto max-w-[1200px] px-4">
+      <div className="app-container">
       <header className="text-white py-3">
         <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
