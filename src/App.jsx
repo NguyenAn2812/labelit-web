@@ -948,10 +948,6 @@ function App() {
       || a.title?.toLowerCase().includes(datasetSearchQuery.toLowerCase())
       || a.article_id?.toLowerCase().includes(datasetSearchQuery.toLowerCase())
     );
-    const totAnn = articles.reduce((s, a) => s + (a.completed_paragraphs || 0), 0);
-    const totSkip = articles.reduce((s, a) => s + (a.skipped_paragraphs || 0), 0);
-    const totPen = articles.reduce((s, a) => s + (a.pending_paragraphs || 0), 0);
-    const totAll = articles.reduce((s, a) => s + (a.total_paragraphs || 0), 0);
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-violet-500">
         <header className="text-white py-4">
@@ -993,18 +989,8 @@ function App() {
             </div>
           ) : (
           <>
-          {/* stats summary bar */}
-          <div className="mt-4 rounded-xl bg-white/10 px-4 py-2 text-white text-sm flex items-center justify-between">
-            <span className="font-semibold">{articles.length} articles</span>
-            <div className="flex gap-3 text-xs">
-              <span className="text-emerald-300">✓ {totAnn} annotated</span>
-              <span className="text-amber-300">⊘ {totSkip} no aspect</span>
-              <span className="text-white/50">{totPen} left · {totAll} total paras</span>
-            </div>
-          </div>
-
           {/* search bar */}
-          <div className="mt-3 mb-4">
+          <div className="mt-4 mb-1">
             <div className="flex gap-2">
               <input
                 className="flex-1 rounded-lg bg-white/10 px-3 py-1.5 text-sm text-white placeholder-white/40 border border-white/20 outline-none focus:border-white/50"
@@ -1023,14 +1009,13 @@ function App() {
             </div>
           </div>
 
-          {/* match count */}
           {datasetSearchQuery && (
             <p className="mb-2 text-xs text-white/50">
               {filteredArticles.length} / {articles.length} articles match
             </p>
           )}
 
-          <div className="mt-2 grid gap-3">
+          <div className="mt-3 grid gap-3">
             {filteredArticles.map((art, idx) => {
               const pctDone =
                 art.total_paragraphs > 0
@@ -1072,10 +1057,10 @@ function App() {
                       style={{ width: `${Math.min(pctDone, 100)}%` }}
                     />
                   </div>
-                  <div className="mt-2 flex gap-3 text-xs text-slate-500">
-                    <span className="text-emerald-600 font-medium">✓ {art.completed_paragraphs || 0} done</span>
-                    <span className="text-amber-600 font-medium">⊘ {art.skipped_paragraphs || 0} skipped</span>
-                    <span className="text-slate-400">{Math.max(0, leftCount)} left</span>
+                  <div className="mt-2 flex gap-4 text-xs">
+                    <span className="text-emerald-600 font-medium">✓ {art.completed_paragraphs || 0} annotated</span>
+                    <span className="text-amber-600 font-medium">⊘ {art.skipped_paragraphs || 0} no aspect</span>
+                    <span className="text-slate-400 font-medium">{Math.max(0, leftCount)} left</span>
                   </div>
                 </button>
               );

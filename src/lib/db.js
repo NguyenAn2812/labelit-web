@@ -40,7 +40,7 @@ export async function getDatasets() {
     .from('dataset_progress_view')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(100000)
+    .range(0, 99999)
 
   if (error) throw error
   return data
@@ -96,15 +96,23 @@ export async function deleteDataset(id) {
 /* ── Articles ─────────────────────────────── */
 
 export async function getArticlesByDataset(datasetId) {
-  const { data, error } = await supabase
-    .from('article_progress_view')
-    .select('*')
-    .eq('dataset_id', datasetId)
-    .order('article_order')
-    .limit(100000)
-
-  if (error) throw error
-  return data
+  const all = [];
+  const pageSize = 1000;
+  let from = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from('article_progress_view')
+      .select('*')
+      .eq('dataset_id', datasetId)
+      .order('article_order')
+      .range(from, from + pageSize - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    all.push(...data);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+  return all;
 }
 
 /* ── Paragraphs ───────────────────────────── */
