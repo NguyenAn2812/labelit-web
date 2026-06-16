@@ -992,6 +992,14 @@ function App() {
             </div>
           ) : (
           <>
+          {/* article summary */}
+          <div className="mt-4 mb-2 rounded-xl bg-white/10 px-4 py-2 text-white text-sm flex items-center justify-between">
+            <span className="font-semibold">{articles.length} articles</span>
+            <div className="flex gap-3 text-xs">
+              <span className="text-emerald-300">✓ {articles.filter(a => (a.completed_paragraphs || 0) + (a.skipped_paragraphs || 0) >= (a.total_paragraphs || 0)).length} done</span>
+              <span className="text-white/50">{articles.filter(a => (a.completed_paragraphs || 0) + (a.skipped_paragraphs || 0) < (a.total_paragraphs || 0)).length} left</span>
+            </div>
+          </div>
           {/* search bar */}
           <div className="mt-4 mb-1">
             <div className="flex gap-2">
