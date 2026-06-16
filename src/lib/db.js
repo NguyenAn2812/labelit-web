@@ -95,24 +95,17 @@ export async function deleteDataset(id) {
 
 /* ── Articles ─────────────────────────────── */
 
-export async function getArticlesByDataset(datasetId) {
-  const all = [];
-  const pageSize = 1000;
-  let from = 0;
-  while (true) {
-    const { data, error } = await supabase
-      .from('article_progress_view')
-      .select('*')
-      .eq('dataset_id', datasetId)
-      .order('article_order')
-      .range(from, from + pageSize - 1);
-    if (error) throw error;
-    if (!data || data.length === 0) break;
-    all.push(...data);
-    if (data.length < pageSize) break;
-    from += pageSize;
-  }
-  return all;
+export async function getArticlesByDataset(datasetId, page = 1, pageSize = 50) {
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  const { data, error, count } = await supabase
+    .from('article_progress_view')
+    .select('*', { count: 'exact' })
+    .eq('dataset_id', datasetId)
+    .order('article_order')
+    .range(from, to);
+  if (error) throw error;
+  return { articles: data, total: count };
 }
 
 /* ── Paragraphs ───────────────────────────── */

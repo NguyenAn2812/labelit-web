@@ -68,6 +68,8 @@ function App() {
   /* search */
   const [searchQuery, setSearchQuery] = useState("");
   const [datasetSearchQuery, setDatasetSearchQuery] = useState("");
+  const [articlePage, setArticlePage] = useState(1);
+  const [articleTotal, setArticleTotal] = useState(0);
 
   /* audit log */
   const [showAuditLog, setShowAuditLog] = useState(false);
@@ -120,11 +122,15 @@ function App() {
   useEffect(() => {
     if (screen !== "dataset-detail" || !selectedDatasetId) return;
     setLoadingArticles(true);
-    getArticlesByDataset(selectedDatasetId)
-      .then(setArticles)
+    setDatasetSearchQuery("");
+    getArticlesByDataset(selectedDatasetId, articlePage)
+      .then(({ articles, total }) => {
+        setArticles(articles);
+        setArticleTotal(total);
+      })
       .catch(console.error)
       .finally(() => setLoadingArticles(false));
-  }, [screen, selectedDatasetId]);
+  }, [screen, selectedDatasetId, articlePage]);
 
 
 
@@ -136,6 +142,7 @@ function App() {
     setSelectedDatasetId(ds.dataset_id);
     setSelectedDatasetName(ds.name);
     setArticles([]);
+    setArticlePage(1);
     setScreen("dataset-detail");
   }
 
@@ -994,7 +1001,7 @@ function App() {
           <>
           {/* article summary */}
           <div className="mt-4 mb-2 rounded-xl bg-white/10 px-4 py-2 text-white text-sm flex items-center justify-between">
-            <span className="font-semibold">{articles.length} articles</span>
+            <span className="font-semibold">{articles.length} / {articleTotal} articles</span>
             <div className="flex gap-3 text-xs">
               <span className="text-emerald-300">✓ {articles.filter(a => (a.completed_paragraphs || 0) + (a.skipped_paragraphs || 0) >= (a.total_paragraphs || 0)).length} done</span>
               <span className="text-white/50">{articles.filter(a => (a.completed_paragraphs || 0) + (a.skipped_paragraphs || 0) < (a.total_paragraphs || 0)).length} left</span>
@@ -1073,6 +1080,28 @@ function App() {
               );
             })}
           </div>
+          {/* pagination */}
+          {articleTotal > 50 && (
+          <div className="mt-4 flex items-center justify-center gap-4 text-white text-sm">
+            <button
+              disabled={articlePage <= 1}
+              onClick={() => setArticlePage(p => Math.max(1, p - 1))}
+              className="rounded-lg bg-white/20 px-4 py-2 font-semibold disabled:opacity-30 hover:bg-white/30 transition cursor-pointer"
+            >
+              ← Prev
+            </button>
+            <span className="font-semibold">
+              Page {articlePage} / {Math.ceil(articleTotal / 50)}
+            </span>
+            <button
+              disabled={articlePage >= Math.ceil(articleTotal / 50)}
+              onClick={() => setArticlePage(p => p + 1)}
+              className="rounded-lg bg-white/20 px-4 py-2 font-semibold disabled:opacity-30 hover:bg-white/30 transition cursor-pointer"
+            >
+              Next →
+            </button>
+          </div>
+          )}
           </>)}
         </div>
         {renderGuideModal()}
